@@ -1,0 +1,66 @@
+.mf-toast-stack {
+  position: fixed;
+  top: var(--mf-space-6);
+  right: var(--mf-space-6);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-3);
+  width: min(360px, calc(100vw - var(--mf-space-8)));
+  pointer-events: none;
+}
+
+.mf-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mf-space-3);
+  padding: var(--mf-space-4);
+  background: var(--mf-surface-raised);
+  border: 1px solid var(--mf-border);
+  border-left: 3px solid var(--mf-ink-300);
+  border-radius: var(--mf-radius-md);
+  box-shadow: var(--mf-shadow-lg);
+  pointer-events: auto;
+  animation: mf-toast-in var(--mf-dur-base) var(--mf-ease);
+}
+
+.mf-toast__icon { display: inline-flex; flex-shrink: 0; margin-top: 1px; }
+.mf-toast__body { flex: 1; min-width: 0; }
+.mf-toast__title { font-size: var(--mf-fs-sm); font-weight: 700; color: var(--mf-ink-900); }
+.mf-toast__description { font-size: var(--mf-fs-xs); color: var(--mf-ink-500); margin-top: 2px; }
+
+.mf-toast__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: none;
+  color: var(--mf-ink-400);
+  border-radius: var(--mf-radius-sm);
+  cursor: pointer;
+}
+.mf-toast__close:hover { background: var(--mf-bg-subtle); color: var(--mf-ink-700); }
+
+.mf-toast--info { border-left-color: var(--mf-info-500); }
+.mf-toast--info .mf-toast__icon { color: var(--mf-info-600); }
+
+.mf-toast--success { border-left-color: var(--mf-green-500); }
+.mf-toast--success .mf-toast__icon { color: var(--mf-green-600); }
+
+.mf-toast--warning { border-left-color: var(--mf-amber-500); }
+.mf-toast--warning .mf-toast__icon { color: var(--mf-amber-600); }
+
+.mf-toast--danger { border-left-color: var(--mf-coral-500); }
+.mf-toast--danger .mf-toast__icon { color: var(--mf-coral-600); }
+
+@keyframes mf-toast-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 640px) {
+  .mf-toast-stack { left: var(--mf-space-4); right: var(--mf-space-4); width: auto; }
+}

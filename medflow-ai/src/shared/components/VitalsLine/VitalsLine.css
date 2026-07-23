@@ -1,0 +1,11 @@
+.mf-vitals-line {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.mf-vitals-line--animated path {
+  stroke-dasharray: 480;
+  stroke-dashoffset: 480;
+  animation: mf-pulse-line 2.2s var(--mf-ease) forwards;
+}

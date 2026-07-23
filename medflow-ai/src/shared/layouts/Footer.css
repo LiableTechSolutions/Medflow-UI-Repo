@@ -1,0 +1,8 @@
+.mf-footer-shell {
+  margin-top: var(--mf-space-8);
+  padding: var(--mf-space-5) var(--mf-space-6);
+  border-top: 1px solid var(--mf-border);
+  color: var(--mf-ink-500);
+  font-size: var(--mf-fs-sm);
+  background: var(--mf-surface);
+}

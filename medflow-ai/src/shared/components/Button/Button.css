@@ -1,0 +1,74 @@
+.mf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mf-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--mf-radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--mf-dur-fast) var(--mf-ease),
+    background var(--mf-dur-fast) var(--mf-ease),
+    border-color var(--mf-dur-fast) var(--mf-ease),
+    box-shadow var(--mf-dur-fast) var(--mf-ease);
+  white-space: nowrap;
+}
+
+.mf-btn:active:not(:disabled) { transform: translateY(1px) scale(0.99); }
+.mf-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Sizes */
+.mf-btn--sm { height: 32px; padding: 0 var(--mf-space-3); font-size: var(--mf-fs-xs); }
+.mf-btn--md { height: 40px; padding: 0 var(--mf-space-5); font-size: var(--mf-fs-sm); }
+.mf-btn--lg { height: 48px; padding: 0 var(--mf-space-6); font-size: var(--mf-fs-base); }
+
+.mf-btn--full { width: 100%; }
+
+/* Variants */
+.mf-btn--primary {
+  background: var(--mf-blue-600);
+  color: white;
+  box-shadow: var(--mf-shadow-button);
+}
+.mf-btn--primary:hover:not(:disabled) { background: var(--mf-blue-700); box-shadow: var(--mf-shadow-md); transform: translateY(-1px); }
+
+.mf-btn--secondary {
+  background: var(--mf-ink-900);
+  color: white;
+}
+.mf-btn--secondary:hover:not(:disabled) { background: var(--mf-blue-900); transform: translateY(-1px); }
+
+.mf-btn--outline {
+  background: transparent;
+  border-color: var(--mf-border-strong);
+  color: var(--mf-ink-900);
+}
+.mf-btn--outline:hover:not(:disabled) { border-color: var(--mf-blue-500); color: var(--mf-blue-700); background: var(--mf-blue-50); }
+
+.mf-btn--ghost {
+  background: transparent;
+  color: var(--mf-ink-700);
+}
+.mf-btn--ghost:hover:not(:disabled) { background: var(--mf-bg-subtle); }
+
+.mf-btn--danger {
+  background: var(--mf-coral-500);
+  color: white;
+}
+.mf-btn--danger:hover:not(:disabled) { background: var(--mf-coral-600); }
+
+.mf-btn__icon { display: inline-flex; }
+.mf-btn__icon svg { width: 1em; height: 1em; }
+
+.mf-btn__spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid var(--mf-white-soft);
+  border-top-color: white;
+  animation: mf-spin 0.7s linear infinite;
+}
+
+@keyframes mf-spin {
+  to { transform: rotate(360deg); }
+}

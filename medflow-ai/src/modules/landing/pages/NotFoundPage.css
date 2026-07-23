@@ -1,0 +1,26 @@
+.mf-404 {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--mf-space-6);
+  gap: var(--mf-space-4);
+}
+
+.mf-404__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--mf-radius-md);
+  background: var(--mf-blue-500);
+  color: white;
+}
+
+.mf-404__vitals { max-width: 220px; margin: var(--mf-space-2) 0; }
+
+.mf-404 h1 { font-size: var(--mf-fs-xl); max-width: 30ch; }
+.mf-404 p { color: var(--mf-ink-500); font-size: var(--mf-fs-sm); margin-bottom: var(--mf-space-4); }

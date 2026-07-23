@@ -1,0 +1,58 @@
+.mf-kpi {
+  position: relative;
+  border-left: 3px solid transparent;
+}
+
+.mf-kpi--blue   { border-left-color: var(--mf-blue-500); }
+.mf-kpi--green  { border-left-color: var(--mf-green-500); }
+.mf-kpi--amber  { border-left-color: var(--mf-amber-500); }
+.mf-kpi--coral  { border-left-color: var(--mf-coral-500); }
+
+.mf-kpi__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--mf-space-4); }
+
+.mf-kpi__glyph { color: var(--mf-ink-300); flex-shrink: 0; }
+
+.mf-kpi__delta { display: inline-flex; align-items: center; gap: 2px; font-size: var(--mf-fs-xs); font-weight: 700; }
+.mf-kpi__delta--up { color: var(--mf-green-600); }
+.mf-kpi__delta--down { color: var(--mf-coral-600); }
+
+.mf-kpi__value {
+  font-family: var(--mf-font-mono);
+  font-size: var(--mf-fs-stat);
+  font-weight: 700;
+  color: var(--mf-ink-900);
+  margin-bottom: var(--mf-space-1);
+  letter-spacing: -0.01em;
+}
+.mf-kpi__label { font-size: var(--mf-fs-sm); font-weight: 600; color: var(--mf-ink-500); }
+
+/* ---- Featured (hero) variant — solid fill, no icon chip, reserved for one stat ---- */
+.mf-kpi--featured {
+  background: linear-gradient(155deg, var(--mf-blue-600), var(--mf-blue-900) 120%);
+  border: none;
+  border-left: none;
+  color: white;
+}
+
+.mf-kpi--featured .mf-kpi__top { margin-bottom: var(--mf-space-6); align-items: flex-start; }
+
+.mf-kpi__featured-label {
+  font-size: var(--mf-fs-sm);
+  font-weight: 600;
+  color: var(--mf-white-soft);
+}
+
+.mf-kpi__featured-icon { color: var(--mf-white-soft); flex-shrink: 0; }
+
+.mf-kpi__value--featured {
+  font-size: var(--mf-fs-3xl);
+  color: white;
+  margin-bottom: var(--mf-space-3);
+}
+
+.mf-kpi__featured-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--mf-space-3); }
+
+.mf-kpi__delta--featured.mf-kpi__delta--up { color: var(--mf-on-dark-success); }
+.mf-kpi__delta--featured.mf-kpi__delta--down { color: var(--mf-on-dark-danger); }
+
+.mf-kpi__meta { font-size: var(--mf-fs-xs); color: var(--mf-white-muted); }

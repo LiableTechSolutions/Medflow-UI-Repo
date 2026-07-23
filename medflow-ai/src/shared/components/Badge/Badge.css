@@ -1,0 +1,24 @@
+.mf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mf-space-1);
+  padding: 3px var(--mf-space-3);
+  border-radius: var(--mf-radius-pill);
+  font-size: var(--mf-fs-xs);
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.mf-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.mf-badge--teal { background: var(--mf-blue-100); color: var(--mf-blue-700); }
+.mf-badge--amber { background: var(--mf-amber-100); color: var(--mf-amber-600); }
+.mf-badge--coral { background: var(--mf-coral-100); color: var(--mf-coral-600); }
+.mf-badge--green { background: var(--mf-green-100); color: var(--mf-green-600); }
+.mf-badge--neutral { background: var(--mf-bg-subtle); color: var(--mf-ink-500); }

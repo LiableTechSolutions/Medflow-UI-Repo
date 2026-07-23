@@ -1,0 +1,75 @@
+.mf-header {
+  height: var(--mf-header-h);
+  display: flex;
+  align-items: center;
+  gap: var(--mf-space-5);
+  padding: 0 var(--mf-space-6);
+  background: var(--mf-surface);
+  border-bottom: 1px solid var(--mf-border);
+  box-shadow: var(--mf-shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.mf-header__left { display: flex; align-items: center; gap: var(--mf-space-4); flex-shrink: 0; }
+
+.mf-header__menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--mf-radius-md);
+  border: 1px solid var(--mf-border);
+  background: var(--mf-surface);
+  color: var(--mf-ink-700);
+  cursor: pointer;
+}
+
+.mf-header__eyebrow { font-size: var(--mf-fs-xs); color: var(--mf-ink-400); }
+.mf-header__title { font-size: var(--mf-fs-md); margin-top: 1px; }
+
+.mf-header__search { flex: 1; display: flex; justify-content: center; }
+.mf-header__search .mf-search { width: 100%; max-width: 420px; }
+
+.mf-header__right { display: flex; align-items: center; gap: var(--mf-space-3); flex-shrink: 0; }
+
+.mf-header__icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--mf-radius-md);
+  color: var(--mf-ink-500);
+  transition: background var(--mf-dur-fast) var(--mf-ease);
+}
+.mf-header__icon-btn:hover { background: var(--mf-bg-subtle); }
+.mf-header__icon-btn--mobile { display: none; border: none; background: none; cursor: pointer; }
+
+.mf-header__notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  padding: 0 5px;
+  min-width: 16px;
+  height: 16px;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.mf-header__divider { width: 1px; height: 24px; background: var(--mf-border); }
+
+.mf-header__profile { display: inline-flex; }
+
+@media (max-width: 1024px) {
+  .mf-header__menu { display: inline-flex; }
+}
+
+@media (max-width: 768px) {
+  .mf-header__search { display: none; }
+  .mf-header__icon-btn--mobile { display: inline-flex; }
+  .mf-header { padding: 0 var(--mf-space-4); gap: var(--mf-space-3); }
+}

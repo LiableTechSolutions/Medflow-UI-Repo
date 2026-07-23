@@ -1,0 +1,79 @@
+.mf-datepicker { position: relative; }
+
+.mf-datepicker__trigger {
+  text-align: left;
+  background: var(--mf-surface);
+  cursor: pointer;
+  padding-right: 40px;
+}
+
+.mf-datepicker__trigger--placeholder { color: var(--mf-ink-400); }
+
+.mf-datepicker__popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 60;
+  width: 272px;
+  padding: var(--mf-space-4);
+  background: var(--mf-surface-raised);
+  border: 1px solid var(--mf-border);
+  border-radius: var(--mf-radius-md);
+  box-shadow: var(--mf-shadow-lg);
+  animation: mf-fade-in var(--mf-dur-fast) var(--mf-ease);
+}
+
+.mf-datepicker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--mf-fs-sm);
+  font-weight: 600;
+  color: var(--mf-ink-900);
+  margin-bottom: var(--mf-space-3);
+}
+
+.mf-datepicker__header button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--mf-border);
+  border-radius: var(--mf-radius-sm);
+  background: var(--mf-surface);
+  color: var(--mf-ink-500);
+  cursor: pointer;
+}
+.mf-datepicker__header button:hover { border-color: var(--mf-blue-500); color: var(--mf-blue-700); }
+
+.mf-datepicker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.mf-datepicker__grid--labels {
+  margin-bottom: var(--mf-space-1);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mf-ink-400);
+}
+
+.mf-datepicker__cell {
+  height: 30px;
+  border: none;
+  border-radius: var(--mf-radius-sm);
+  background: transparent;
+  color: var(--mf-ink-700);
+  font-size: var(--mf-fs-xs);
+  cursor: pointer;
+  transition: background var(--mf-dur-fast) var(--mf-ease), color var(--mf-dur-fast) var(--mf-ease);
+}
+
+.mf-datepicker__cell:hover:not(:disabled) { background: var(--mf-blue-50); }
+.mf-datepicker__cell:disabled { color: var(--mf-ink-300); cursor: not-allowed; }
+.mf-datepicker__cell--today { font-weight: 700; color: var(--mf-blue-600); }
+.mf-datepicker__cell--selected { background: var(--mf-blue-600); color: white; }
+.mf-datepicker__cell--selected:hover { background: var(--mf-blue-700); }

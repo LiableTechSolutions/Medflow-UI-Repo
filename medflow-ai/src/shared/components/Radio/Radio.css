@@ -1,0 +1,67 @@
+.mf-radio {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--mf-space-3);
+}
+
+.mf-radio--disabled { opacity: 0.55; cursor: not-allowed; }
+
+.mf-radio__control {
+  position: relative;
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.mf-radio__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.mf-radio--disabled .mf-radio__input { cursor: not-allowed; }
+
+.mf-radio__dot {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--mf-border-strong);
+  border-radius: var(--mf-radius-pill);
+  background: var(--mf-surface);
+  transition: border-color var(--mf-dur-fast) var(--mf-ease);
+  pointer-events: none;
+}
+
+.mf-radio__dot::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--mf-radius-pill);
+  background: var(--mf-blue-600);
+  transform: scale(0);
+  transition: transform var(--mf-dur-fast) var(--mf-ease);
+}
+
+.mf-radio__input:focus-visible ~ .mf-radio__dot { box-shadow: var(--mf-shadow-focus); }
+.mf-radio__input:hover:not(:disabled) ~ .mf-radio__dot { border-color: var(--mf-blue-500); }
+.mf-radio__input:checked ~ .mf-radio__dot { border-color: var(--mf-blue-600); }
+.mf-radio__input:checked ~ .mf-radio__dot::after { transform: scale(1); }
+
+.mf-radio__text { display: flex; flex-direction: column; gap: 2px; }
+.mf-radio__label { font-size: var(--mf-fs-sm); font-weight: 500; color: var(--mf-ink-700); cursor: pointer; }
+.mf-radio--disabled .mf-radio__label { cursor: not-allowed; }
+.mf-radio__hint { font-size: var(--mf-fs-xs); color: var(--mf-ink-400); }
+
+.mf-radio-group { display: flex; flex-direction: column; gap: var(--mf-space-3); }
+.mf-radio-group__label { font-size: var(--mf-fs-xs); font-weight: 600; color: var(--mf-ink-700); letter-spacing: 0.01em; }
+
+.mf-radio-group__options { display: flex; gap: var(--mf-space-3); }
+.mf-radio-group__options--vertical { flex-direction: column; }
+.mf-radio-group__options--horizontal { flex-direction: row; flex-wrap: wrap; gap: var(--mf-space-5); }

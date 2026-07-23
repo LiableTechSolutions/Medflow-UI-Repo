@@ -1,0 +1,50 @@
+.mf-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-5);
+}
+
+.mf-auth-form__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--mf-fs-xs);
+}
+
+.mf-auth-form__checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--mf-space-2);
+  color: var(--mf-ink-500);
+  cursor: pointer;
+}
+.mf-auth-form__checkbox input { accent-color: var(--mf-blue-500); width: 15px; height: 15px; }
+
+.mf-auth-form__link { color: var(--mf-blue-600); font-weight: 600; }
+.mf-auth-form__link:hover { text-decoration: underline; }
+
+.mf-auth-form__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--mf-space-4);
+  padding: var(--mf-space-6) 0;
+}
+
+.mf-auth-form__success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--mf-blue-100);
+  color: var(--mf-blue-600);
+}
+
+.mf-auth-form__terms {
+  font-size: var(--mf-fs-xs);
+  color: var(--mf-ink-400);
+  line-height: 1.6;
+}

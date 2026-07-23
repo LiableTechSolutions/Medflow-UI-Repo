@@ -1,0 +1,66 @@
+.mf-profile-menu { position: relative; }
+
+.mf-profile-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mf-space-2);
+  background: none;
+  border: none;
+  padding: var(--mf-space-1);
+  border-radius: var(--mf-radius-md);
+  cursor: pointer;
+  transition: background var(--mf-dur-fast) var(--mf-ease);
+}
+.mf-profile-menu__trigger:hover { background: var(--mf-bg-subtle); }
+
+.mf-profile-menu__chevron { color: var(--mf-ink-400); transition: transform var(--mf-dur-fast) var(--mf-ease); }
+.mf-profile-menu__chevron--open { transform: rotate(180deg); }
+
+.mf-profile-menu__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  width: 236px;
+  padding: var(--mf-space-2);
+  background: var(--mf-surface-raised);
+  border: 1px solid var(--mf-border);
+  border-radius: var(--mf-radius-md);
+  box-shadow: var(--mf-shadow-lg);
+  animation: mf-fade-in var(--mf-dur-fast) var(--mf-ease);
+}
+
+.mf-profile-menu__header {
+  display: flex;
+  align-items: center;
+  gap: var(--mf-space-3);
+  padding: var(--mf-space-2) var(--mf-space-2) var(--mf-space-3);
+}
+
+.mf-profile-menu__name { font-size: var(--mf-fs-sm); font-weight: 600; color: var(--mf-ink-900); }
+.mf-profile-menu__subtitle { font-size: var(--mf-fs-xs); color: var(--mf-ink-400); }
+
+.mf-profile-menu__divider { height: 1px; background: var(--mf-border); margin: 0 0 var(--mf-space-2); }
+
+.mf-profile-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--mf-space-3);
+  width: 100%;
+  padding: var(--mf-space-2) var(--mf-space-3);
+  border: none;
+  background: none;
+  border-radius: var(--mf-radius-sm);
+  font-size: var(--mf-fs-sm);
+  font-weight: 500;
+  color: var(--mf-ink-700);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--mf-dur-fast) var(--mf-ease);
+}
+.mf-profile-menu__item:hover { background: var(--mf-bg-subtle); }
+.mf-profile-menu__item-icon { display: inline-flex; color: var(--mf-ink-400); }
+.mf-profile-menu__item--danger { color: var(--mf-coral-600); }
+.mf-profile-menu__item--danger .mf-profile-menu__item-icon { color: var(--mf-coral-500); }
+.mf-profile-menu__item--danger:hover { background: var(--mf-coral-100); }
