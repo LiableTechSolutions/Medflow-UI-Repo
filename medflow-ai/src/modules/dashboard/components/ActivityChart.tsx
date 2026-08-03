@@ -10,11 +10,18 @@ const DATA = [
   { label: 'Sun', value: 22 },
 ];
 
-export function ActivityChart() {
-  const max = Math.max(...DATA.map((d) => d.value));
+export interface ActivityPoint {
+  label: string;
+  value: number;
+}
+
+/** Renders the supplied series; falls back to sample data when none is passed. */
+export function ActivityChart({ data = DATA }: { data?: ActivityPoint[] }) {
+  const series = data.length > 0 ? data : DATA;
+  const max = Math.max(...series.map((d) => d.value), 1);
   return (
     <div className="mf-chart">
-      {DATA.map((d) => (
+      {series.map((d) => (
         <div className="mf-chart__col" key={d.label}>
           <div className="mf-chart__bar-track">
             <div className="mf-chart__bar" style={{ height: `${(d.value / max) * 100}%` }} />

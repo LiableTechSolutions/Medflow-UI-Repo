@@ -6,3 +6,7 @@ dist-ssr
 *.lnk
 storybook-static/
 *.log
+
+# Local environment overrides (commit .env.example instead)
+.env
+.env.local

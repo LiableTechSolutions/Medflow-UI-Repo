@@ -1,9 +1,33 @@
 # MedFlow AI — Frontend Foundation
 
-Centralized React frontend for the MedFlow AI healthcare platform. This is the
-**foundation only** — layout, navigation, design system and reusable
-components — built so multiple developers can add modules independently
-without touching the core shell.
+Centralized React frontend for the MedFlow AI healthcare platform: layout, navigation,
+design system and reusable components, plus the module screens wired to the MedFlow AI
+backend API.
+
+## Running against the backend
+
+1. Start the backend (`mvn spring-boot:run` in `medflow-ai/`) — it serves
+   `http://localhost:8080/api/v1`.
+2. Copy `.env.example` to `.env` if you need a different API URL:
+   `VITE_API_BASE_URL=http://localhost:8080/api/v1`
+3. `npm install && npm run dev`, then sign in at <http://localhost:5173> with the seeded
+   demo administrator `admin@medflow.local` / `Admin@12345`.
+
+Full walkthrough: `medflow-ai/LOCAL_SETUP.md`.
+
+### How API access is organised
+
+| File | Responsibility |
+|---|---|
+| `src/core/api/client.ts` | fetch wrapper: base URL, bearer token, envelope unwrapping, `ApiError`, 401 handling |
+| `src/core/api/services.ts` | one function per backend route, grouped by module |
+| `src/core/api/types.ts` | response shapes |
+| `src/core/auth/AuthContext.tsx` | session: login, register, logout, restore on refresh, `can(permission)` |
+| `src/shared/hooks/useApiResource.ts` | load/error/retry state for a request |
+| `src/shared/components/DataPage` | header + search + paged table used by the module list screens |
+
+Routes under `AppLayout` require a session; anonymous visitors are redirected to
+`/login` and returned to their destination after signing in.
 
 ## Stack
 

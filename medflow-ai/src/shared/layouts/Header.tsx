@@ -1,16 +1,26 @@
-import { Menu, Bell, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu, Bell, Search, LogOut, Settings, User } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { SearchBar } from '../components/SearchBar/SearchBar';
 import { Badge } from '../components/Badge/Badge';
 import { ProfileMenu } from '../components/ProfileMenu/ProfileMenu';
+import { useAuth } from '../../core/auth/AuthContext';
+import { useApiResource } from '../hooks/useApiResource';
+import { notificationsApi } from '../../core/api/services';
+import { ROUTES } from '../../core/config/app.config';
 import './Header.css';
 
 interface HeaderProps {
   onMenuClick: () => void;
-  userName?: string;
 }
 
-export function Header({ onMenuClick, userName = 'Dr. Ananya Rao' }: HeaderProps) {
+export function Header({ onMenuClick }: HeaderProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { data: unread } = useApiResource(() => notificationsApi.unreadCount(), []);
+
+  const userName = user?.fullName ?? 'MedFlow user';
+  const unreadCount = unread?.unread ?? 0;
+
   return (
     <header className="mf-header">
       <div className="mf-header__left">
@@ -31,12 +41,33 @@ export function Header({ onMenuClick, userName = 'Dr. Ananya Rao' }: HeaderProps
         <button className="mf-header__icon-btn mf-header__icon-btn--mobile" aria-label="Search">
           <Search size={18} />
         </button>
-        <Link to="/notifications" className="mf-header__icon-btn" aria-label="Notifications">
+        <Link to={ROUTES.notifications} className="mf-header__icon-btn" aria-label="Notifications">
           <Bell size={18} />
-          <Badge tone="coral" className="mf-header__notif-badge">3</Badge>
+          {unreadCount > 0 && (
+            <Badge tone="coral" className="mf-header__notif-badge">
+              {unreadCount}
+            </Badge>
+          )}
         </Link>
         <div className="mf-header__divider" />
-        <ProfileMenu userName={userName} userSubtitle="View profile" className="mf-header__profile" />
+        <ProfileMenu
+          userName={userName}
+          userSubtitle={user?.roleName ?? 'View profile'}
+          className="mf-header__profile"
+          items={[
+            { label: 'My profile', icon: <User size={15} />, to: ROUTES.settings },
+            { label: 'Settings', icon: <Settings size={15} />, to: ROUTES.settings },
+            {
+              label: 'Sign out',
+              icon: <LogOut size={15} />,
+              danger: true,
+              onSelect: () => {
+                logout();
+                navigate(ROUTES.login, { replace: true });
+              },
+            },
+          ]}
+        />
       </div>
     </header>
   );

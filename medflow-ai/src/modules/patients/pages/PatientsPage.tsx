@@ -1,15 +1,50 @@
-import { Users, UserPlus, FileHeart, History } from 'lucide-react';
-import { ModulePlaceholder } from '../../../shared/components/ModulePlaceholder/ModulePlaceholder';
+import { DataPage } from '../../../shared/components/DataPage';
+import { Badge } from '../../../shared/components/Badge/Badge';
+import { Avatar } from '../../../shared/components/Avatar/Avatar';
+import { patientsApi } from '../../../core/api/services';
+import { formatDate, humanize, statusTone } from '../../../core/utils/format';
+import type { Patient } from '../../../core/api/types';
 
 export default function PatientsPage() {
   return (
-    <ModulePlaceholder
+    <DataPage<Patient>
       title="Patient Management"
-      features={[
-        { icon: Users, title: 'Patient List', description: 'Search and filter the full patient roster across departments.' },
-        { icon: UserPlus, title: 'Add Patient', description: 'Register a new patient with intake details and history.' },
-        { icon: FileHeart, title: 'Patient Profile', description: 'View vitals, conditions and assigned doctors for one patient.' },
-        { icon: History, title: 'Visit History', description: 'Track every visit, diagnosis and follow-up over time.' },
+      description="Registered patients, their contact details and record status."
+      searchPlaceholder="Search by name, code, phone or email…"
+      rowKey={(row) => row.id}
+      load={({ page, size, query }) => patientsApi.list({ page, size, query })}
+      emptyMessage="No patients match this search."
+      columns={[
+        {
+          key: 'name',
+          header: 'Patient',
+          render: (row) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--mf-space-3)' }}>
+              <Avatar name={row.fullName} size="sm" />
+              <div>
+                <div>{row.fullName}</div>
+                <small style={{ color: 'var(--mf-text-muted)' }}>{row.patientCode}</small>
+              </div>
+            </div>
+          ),
+        },
+        {
+          key: 'age',
+          header: 'Age / Gender',
+          render: (row) => `${row.age ?? '—'} · ${humanize(row.gender)}`,
+        },
+        { key: 'blood', header: 'Blood group', render: (row) => row.bloodGroup ?? '—' },
+        { key: 'phone', header: 'Phone', render: (row) => row.phone ?? '—' },
+        { key: 'registered', header: 'Registered', render: (row) => formatDate(row.createdAt) },
+        {
+          key: 'status',
+          header: 'Status',
+          render: (row) => (
+            <Badge tone={statusTone(row.status)} dot>
+              {humanize(row.status)}
+            </Badge>
+          ),
+        },
       ]}
     />
   );

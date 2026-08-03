@@ -1,0 +1,25 @@
+.mf-data-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-5);
+}
+
+.mf-data-page__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mf-space-3);
+}
+
+.mf-data-page__search {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.mf-data-page__pagination {
+  margin-top: var(--mf-space-4);
+}
+
+.mf-data-page__retry {
+  margin-top: var(--mf-space-3);
+}

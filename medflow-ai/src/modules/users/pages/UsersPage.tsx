@@ -1,15 +1,83 @@
-import { UserCog, ShieldCheck, KeyRound, Users2 } from 'lucide-react';
-import { ModulePlaceholder } from '../../../shared/components/ModulePlaceholder/ModulePlaceholder';
+import { useState } from 'react';
+import { DataPage } from '../../../shared/components/DataPage';
+import { Badge } from '../../../shared/components/Badge/Badge';
+import { Button } from '../../../shared/components/Button/Button';
+import { Avatar } from '../../../shared/components/Avatar/Avatar';
+import { useToast } from '../../../shared/components/Toast/Toast';
+import { usersApi } from '../../../core/api/services';
+import { ApiError } from '../../../core/api/client';
+import { useAuth } from '../../../core/auth/AuthContext';
+import { formatDateTime, humanize, statusTone } from '../../../core/utils/format';
+import type { UserAccount } from '../../../core/api/types';
 
 export default function UsersPage() {
+  const { show } = useToast();
+  const { can, user: currentUser } = useAuth();
+  const [version, setVersion] = useState(0);
+
+  const canManage = can('users:write');
+
+  async function toggleStatus(row: UserAccount) {
+    const next = row.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    try {
+      await usersApi.changeStatus(row.id, next);
+      show({ title: `${row.fullName} is now ${next.toLowerCase()}`, tone: 'success' });
+      setVersion((v) => v + 1);
+    } catch (cause) {
+      show({
+        title: 'Could not change the account status',
+        description: cause instanceof ApiError ? cause.message : undefined,
+        tone: 'danger',
+      });
+    }
+  }
+
   return (
-    <ModulePlaceholder
+    <DataPage<UserAccount>
       title="User Management"
-      features={[
-        { icon: Users2, title: 'User Directory', description: 'View every account with access to this workspace.' },
-        { icon: UserCog, title: 'Roles & Permissions', description: 'Define what each role can see and do in the platform.' },
-        { icon: KeyRound, title: 'Access Control', description: 'Grant or revoke access to specific modules per user.' },
-        { icon: ShieldCheck, title: 'Audit Log', description: 'Review a history of account and permission changes.' },
+      description="Staff accounts, their role and access to the workspace."
+      searchPlaceholder="Search by name or email…"
+      rowKey={(row) => row.id}
+      deps={[version]}
+      load={({ page, size, query }) => usersApi.list({ page, size, query })}
+      emptyMessage="No accounts match this search."
+      columns={[
+        {
+          key: 'name',
+          header: 'User',
+          render: (row) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--mf-space-3)' }}>
+              <Avatar name={row.fullName} size="sm" />
+              <div>
+                <div>{row.fullName}</div>
+                <small style={{ color: 'var(--mf-text-muted)' }}>{row.email}</small>
+              </div>
+            </div>
+          ),
+        },
+        { key: 'role', header: 'Role', render: (row) => row.roleName ?? humanize(row.roleCode) },
+        { key: 'phone', header: 'Phone', render: (row) => row.phone ?? '—' },
+        { key: 'lastLogin', header: 'Last sign-in', render: (row) => formatDateTime(row.lastLoginAt) },
+        {
+          key: 'status',
+          header: 'Status',
+          render: (row) => (
+            <Badge tone={statusTone(row.status)} dot>
+              {humanize(row.status)}
+            </Badge>
+          ),
+        },
+        {
+          key: 'action',
+          header: '',
+          align: 'right',
+          render: (row) =>
+            canManage && row.id !== currentUser?.id ? (
+              <Button size="sm" variant="outline" onClick={() => toggleStatus(row)}>
+                {row.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+              </Button>
+            ) : null,
+        },
       ]}
     />
   );

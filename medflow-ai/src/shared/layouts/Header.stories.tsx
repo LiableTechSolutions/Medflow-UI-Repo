@@ -6,7 +6,6 @@ const meta = {
   component: Header,
   args: {
     onMenuClick: () => undefined,
-    userName: 'Dr. Ananya Rao',
   },
 } satisfies Meta<typeof Header>;
 
