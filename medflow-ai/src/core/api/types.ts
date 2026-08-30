@@ -193,6 +193,17 @@ export interface Setting {
   updatedAt: string;
 }
 
+export type RegistrationProfileType = 'BASIC' | 'COMPREHENSIVE';
+export type RegistrationFieldState = 'REQUIRED' | 'OPTIONAL' | 'HIDDEN';
+
+export interface RegistrationProfile {
+  id?: number;
+  hospitalId?: number;
+  startingProfile: RegistrationProfileType;
+  fieldStates: Record<string, RegistrationFieldState>;
+  updatedAt?: string;
+}
+
 export interface Role {
   id: number;
   roleCode: string;

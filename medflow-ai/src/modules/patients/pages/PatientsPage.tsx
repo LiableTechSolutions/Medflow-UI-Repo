@@ -1,20 +1,30 @@
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Avatar } from '../../../shared/components/Avatar/Avatar';
+import { Button } from '../../../shared/components/Button/Button';
 import { patientsApi } from '../../../core/api/services';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
 import type { Patient } from '../../../core/api/types';
+import { CreatePatientModal } from './CreatePatientModal';
 
 export default function PatientsPage() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+
   return (
-    <DataPage<Patient>
-      title="Patient Management"
-      description="Registered patients, their contact details and record status."
-      searchPlaceholder="Search by name, code, phone or email…"
-      rowKey={(row) => row.id}
-      load={({ page, size, query }) => patientsApi.list({ page, size, query })}
-      emptyMessage="No patients match this search."
-      columns={[
+    <>
+      <DataPage<Patient>
+        title="Patient Management"
+        description="Registered patients, their contact details and record status."
+        actions={<Button leftIcon={<Plus size={16} />} onClick={() => setIsCreateOpen(true)}>Create Patient</Button>}
+        searchPlaceholder="Search by name, code, phone or email…"
+        rowKey={(row) => row.id}
+        load={({ page, size, query }) => patientsApi.list({ page, size, query })}
+        deps={[refreshVersion]}
+        emptyMessage="No patients match this search."
+        columns={[
         {
           key: 'name',
           header: 'Patient',
@@ -45,7 +55,13 @@ export default function PatientsPage() {
             </Badge>
           ),
         },
-      ]}
-    />
+        ]}
+      />
+      <CreatePatientModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreated={() => setRefreshVersion((version) => version + 1)}
+      />
+    </>
   );
 }

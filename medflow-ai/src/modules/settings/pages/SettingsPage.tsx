@@ -9,9 +9,10 @@ import { Loading } from '../../../shared/components/Loading/Loading';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { useToast } from '../../../shared/components/Toast/Toast';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
-import { hospitalApi, settingsApi } from '../../../core/api/services';
+import { hospitalApi, settingsApi, registrationProfileApi } from '../../../core/api/services';
 import { ApiError } from '../../../core/api/client';
 import { useAuth } from '../../../core/auth/AuthContext';
+import RegistrationProfileEditor from '../components/RegistrationProfileEditor/RegistrationProfileEditor';
 
 export default function SettingsPage() {
   const { show } = useToast();
@@ -19,6 +20,7 @@ export default function SettingsPage() {
   const hospital = useApiResource(() => hospitalApi.profile(), []);
   const modules = useApiResource(() => hospitalApi.modules(), []);
   const settings = useApiResource(() => settingsApi.list(), []);
+  const registrationProfile = useApiResource(() => registrationProfileApi.get(), []);
 
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
@@ -47,6 +49,10 @@ export default function SettingsPage() {
     }
   }
 
+  const handleProfileSave = () => {
+    registrationProfile.reload();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--mf-space-5)' }}>
       <PageHeader title="Settings" description="Workspace configuration and licensed modules." />
@@ -55,6 +61,32 @@ export default function SettingsPage() {
         <Alert tone="danger" title="Could not load settings">
           {settings.error}
         </Alert>
+      )}
+
+      {/* Patient Registration Profile Section */}
+      {canEdit && (
+        <Card padding="lg">
+          <CardHeader>
+            <div>
+              <CardTitle>Patient Registration Profile</CardTitle>
+              <CardSubtitle>Configure required vs. optional patient intake fields</CardSubtitle>
+            </div>
+          </CardHeader>
+          <CardBody>
+            {registrationProfile.isLoading && !registrationProfile.data ? (
+              <Loading />
+            ) : registrationProfile.error ? (
+              <Alert tone="danger" title="Could not load profile">
+                {registrationProfile.error}
+              </Alert>
+            ) : (
+              <RegistrationProfileEditor
+                profile={registrationProfile.data || null}
+                onSave={handleProfileSave}
+              />
+            )}
+          </CardBody>
+        </Card>
       )}
 
       <Card padding="lg">

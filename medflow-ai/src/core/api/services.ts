@@ -14,6 +14,7 @@ import type {
   Notification,
   Patient,
   Prescription,
+  RegistrationProfile,
   Role,
   Setting,
   UserAccount,
@@ -118,6 +119,14 @@ export const accessApi = {
 export const settingsApi = {
   list: () => api.get<Setting[]>('/settings'),
   save: (key: string, value: string) => api.put<Setting>(`/settings/${key}`, { value }),
+};
+
+export const registrationProfileApi = {
+  get: () => api.get<RegistrationProfile>('/patients/registration-profile'),
+  save: (payload: {
+    startingProfile: 'BASIC' | 'COMPREHENSIVE';
+    fieldStates: Record<string, 'REQUIRED' | 'OPTIONAL' | 'HIDDEN'>;
+  }) => api.put<RegistrationProfile>('/patients/registration-profile', payload),
 };
 
 export const assistantApi = {
