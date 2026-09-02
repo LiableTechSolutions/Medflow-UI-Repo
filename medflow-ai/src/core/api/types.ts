@@ -105,6 +105,15 @@ export interface Patient {
   address?: string;
   status: AccountStatus;
   createdAt: string;
+  registrationData?: Record<string, unknown>;
+}
+
+export type RegistrationFieldState = 'HIDDEN' | 'OPTIONAL' | 'REQUIRED';
+
+export interface RegistrationProfile {
+  template: 'BASIC' | 'COMPREHENSIVE';
+  fieldStates: Record<string, RegistrationFieldState>;
+  updatedAt: string;
 }
 
 export interface Appointment {

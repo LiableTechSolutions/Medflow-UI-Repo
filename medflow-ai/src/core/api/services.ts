@@ -13,6 +13,7 @@ import type {
   ModuleEntitlement,
   Notification,
   Patient,
+  RegistrationProfile,
   Prescription,
   Role,
   Setting,
@@ -60,6 +61,7 @@ export const patientsApi = {
     api.get<Page<Patient>>(`/patients${query({ ...params })}`),
   get: (id: number) => api.get<Patient>(`/patients/${id}`),
   create: (payload: Record<string, unknown>) => api.post<Patient>('/patients', payload),
+  registrationProfile: () => api.get<RegistrationProfile>('/settings/patient-registration'),
 };
 
 export const appointmentsApi = {
@@ -118,6 +120,9 @@ export const accessApi = {
 export const settingsApi = {
   list: () => api.get<Setting[]>('/settings'),
   save: (key: string, value: string) => api.put<Setting>(`/settings/${key}`, { value }),
+  registrationProfile: () => api.get<RegistrationProfile>('/settings/patient-registration'),
+  saveRegistrationProfile: (profile: RegistrationProfile) =>
+    api.put<RegistrationProfile>('/settings/patient-registration', profile),
 };
 
 export const assistantApi = {

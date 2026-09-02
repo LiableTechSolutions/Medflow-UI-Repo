@@ -1,20 +1,26 @@
+import { useState } from 'react';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Avatar } from '../../../shared/components/Avatar/Avatar';
 import { patientsApi } from '../../../core/api/services';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
 import type { Patient } from '../../../core/api/types';
+import { PatientRegistrationForm } from '../components/PatientRegistrationForm';
 
 export default function PatientsPage() {
+  const [refreshToken, setRefreshToken] = useState(0);
   return (
-    <DataPage<Patient>
-      title="Patient Management"
-      description="Registered patients, their contact details and record status."
-      searchPlaceholder="Search by name, code, phone or email…"
-      rowKey={(row) => row.id}
-      load={({ page, size, query }) => patientsApi.list({ page, size, query })}
-      emptyMessage="No patients match this search."
-      columns={[
+    <div style={{ display: 'grid', gap: 'var(--mf-space-5)' }}>
+      <PatientRegistrationForm onCreated={() => setRefreshToken((value) => value + 1)} />
+      <DataPage<Patient>
+        title="Patient Management"
+        description="Registered patients, their contact details and record status."
+        searchPlaceholder="Search by name, code, phone or email…"
+        rowKey={(row) => row.id}
+        load={({ page, size, query }) => patientsApi.list({ page, size, query })}
+        deps={[refreshToken]}
+        emptyMessage="No patients match this search."
+        columns={[
         {
           key: 'name',
           header: 'Patient',
@@ -45,7 +51,8 @@ export default function PatientsPage() {
             </Badge>
           ),
         },
-      ]}
-    />
+        ]}
+      />
+    </div>
   );
 }
