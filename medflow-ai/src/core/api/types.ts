@@ -103,6 +103,23 @@ export interface Patient {
   phone?: string;
   email?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  preferredLanguage?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelationship?: string;
+  insuranceProvider?: string;
+  memberId?: string;
+  governmentIdType?: string;
+  governmentIdNumber?: string;
+  allergies?: string;
+  consentStatus?: string;
+  referringPhysician?: string;
+  guardianName?: string;
+  guardianRelationship?: string;
+  guardianMobile?: string;
   status: AccountStatus;
   createdAt: string;
 }

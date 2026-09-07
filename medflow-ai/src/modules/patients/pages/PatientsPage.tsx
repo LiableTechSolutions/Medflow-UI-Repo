@@ -1,15 +1,24 @@
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Avatar } from '../../../shared/components/Avatar/Avatar';
+import { Button } from '../../../shared/components/Button/Button';
 import { patientsApi } from '../../../core/api/services';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
 import type { Patient } from '../../../core/api/types';
+import { AddPatientModal } from '../components/AddPatientModal';
 
 export default function PatientsPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
+
   return (
-    <DataPage<Patient>
+    <>
+      <DataPage<Patient>
       title="Patient Management"
       description="Registered patients, their contact details and record status."
+      actions={<Button leftIcon={<Plus size={16} />} onClick={() => setIsModalOpen(true)}>Add patient</Button>}
       searchPlaceholder="Search by name, code, phone or email…"
       rowKey={(row) => row.id}
       load={({ page, size, query }) => patientsApi.list({ page, size, query })}
@@ -46,6 +55,13 @@ export default function PatientsPage() {
           ),
         },
       ]}
-    />
+      deps={[reloadToken]}
+      />
+      <AddPatientModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreated={() => setReloadToken((current) => current + 1)}
+      />
+    </>
   );
 }
