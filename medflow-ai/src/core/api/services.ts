@@ -18,6 +18,10 @@ import type {
   Setting,
   UserAccount,
 } from './types';
+import type {
+  PatientRegistrationProfile,
+  UpdatePatientRegistrationProfile,
+} from '../../modules/settings/types/patientRegistrationProfile';
 
 export interface Paged {
   page?: number;
@@ -118,6 +122,14 @@ export const accessApi = {
 export const settingsApi = {
   list: () => api.get<Setting[]>('/settings'),
   save: (key: string, value: string) => api.put<Setting>(`/settings/${key}`, { value }),
+  patientRegistrationProfile: () =>
+    api.get<PatientRegistrationProfile>('/settings/patient-registration-profile'),
+  updatePatientRegistrationProfile: (payload: UpdatePatientRegistrationProfile) =>
+    api.put<PatientRegistrationProfile>('/settings/patient-registration-profile', payload),
+  applyPatientRegistrationTemplate: (template: 'basic' | 'comprehensive') =>
+    api.post<PatientRegistrationProfile>(
+      `/settings/patient-registration-profile/templates/${template}`,
+    ),
 };
 
 export const assistantApi = {
