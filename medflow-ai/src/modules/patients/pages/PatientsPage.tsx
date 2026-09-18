@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Avatar } from '../../../shared/components/Avatar/Avatar';
@@ -10,6 +11,7 @@ import type { Patient } from '../../../core/api/types';
 import { AddPatientModal } from '../components/AddPatientModal';
 
 export default function PatientsPage() {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -21,6 +23,7 @@ export default function PatientsPage() {
       actions={<Button leftIcon={<Plus size={16} />} onClick={() => setIsModalOpen(true)}>Add patient</Button>}
       searchPlaceholder="Search by name, code, phone or email…"
       rowKey={(row) => row.id}
+      onRowClick={(row) => navigate(`/patients/${row.id}`)}
       load={({ page, size, query }) => patientsApi.list({ page, size, query })}
       emptyMessage="No patients match this search."
       columns={[
@@ -45,6 +48,15 @@ export default function PatientsPage() {
         { key: 'blood', header: 'Blood group', render: (row) => row.bloodGroup ?? '—' },
         { key: 'phone', header: 'Phone', render: (row) => row.phone ?? '—' },
         { key: 'registered', header: 'Registered', render: (row) => formatDate(row.createdAt) },
+        {
+          key: 'care',
+          header: 'Care setting',
+          render: (row) => (
+            <Badge tone={row.isHospitalised ? 'amber' : 'neutral'} dot>
+              {row.isHospitalised ? 'Hospitalised' : 'OPD'}
+            </Badge>
+          ),
+        },
         {
           key: 'status',
           header: 'Status',

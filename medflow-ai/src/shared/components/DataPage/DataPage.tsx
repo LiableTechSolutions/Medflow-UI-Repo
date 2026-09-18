@@ -21,6 +21,7 @@ interface DataPageProps<T> {
   searchPlaceholder?: string;
   columns: TableColumn<T>[];
   rowKey: (row: T) => string | number;
+  onRowClick?: (row: T) => void;
   load: (params: { page: number; size: number; query: string }) => Promise<Page<T>>;
   /** Extra values that should trigger a reload when they change (filters, toggles). */
   deps?: unknown[];
@@ -41,6 +42,7 @@ export function DataPage<T>({
   searchPlaceholder = 'Search…',
   columns,
   rowKey,
+  onRowClick,
   load,
   deps = [],
   emptyMessage,
@@ -101,6 +103,7 @@ export function DataPage<T>({
                 columns={columns}
                 data={data?.content ?? []}
                 rowKey={rowKey}
+                onRowClick={onRowClick}
                 emptyMessage={emptyMessage ?? 'Nothing here yet.'}
               />
               {data && data.totalPages > 1 && (

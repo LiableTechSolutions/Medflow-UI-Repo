@@ -121,7 +121,48 @@ export interface Patient {
   guardianRelationship?: string;
   guardianMobile?: string;
   status: AccountStatus;
+  /** True while the patient has an active (not yet discharged) hospitalisation. */
+  isHospitalised: boolean;
   createdAt: string;
+}
+
+export type HospitalisationStatus = 'ADMITTED' | 'DISCHARGED';
+
+/** An inpatient admission record. Discharge is a separate action, not captured at creation. */
+export interface HospitalisationRecord {
+  id: number;
+  patientId: number;
+  ward: string;
+  bed: string;
+  admittingDoctorId: number;
+  admittingDoctorName?: string;
+  admissionDate: string;
+  dischargeDate?: string;
+  status: HospitalisationStatus;
+  createdAt: string;
+}
+
+/** One day's vitals/observations logged against an active hospitalisation. */
+export interface DailyAnalysisEntry {
+  id: number;
+  hospitalisationId: number;
+  patientId: number;
+  entryDate: string;
+  bloodPressureSystolic: number;
+  bloodPressureDiastolic: number;
+  pulseRate: number;
+  temperature: number;
+  spo2: number;
+  notes?: string;
+  recordedBy: string;
+  createdAt: string;
+}
+
+/** Combined payload for the patient summary screen. */
+export interface PatientSummary {
+  patient: Patient;
+  hospitalisation?: HospitalisationRecord;
+  dailyAnalyses: DailyAnalysisEntry[];
 }
 
 export interface Appointment {

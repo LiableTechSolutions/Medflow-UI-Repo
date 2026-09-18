@@ -5,14 +5,17 @@ import type {
   AuthSession,
   ChatMessage,
   DailyActivity,
+  DailyAnalysisEntry,
   DashboardSummary,
   Doctor,
   Hospital,
+  HospitalisationRecord,
   LabOrder,
   Medication,
   ModuleEntitlement,
   Notification,
   Patient,
+  PatientSummary,
   Prescription,
   Role,
   Setting,
@@ -64,6 +67,29 @@ export const patientsApi = {
     api.get<Page<Patient>>(`/patients${query({ ...params })}`),
   get: (id: number) => api.get<Patient>(`/patients/${id}`),
   create: (payload: Record<string, unknown>) => api.post<Patient>('/patients', payload),
+  update: (id: number, payload: Record<string, unknown>) => api.put<Patient>(`/patients/${id}`, payload),
+  /** Patient + active hospitalisation (if any) + its daily analysis entries, for the summary screen. */
+  summary: (id: number) => api.get<PatientSummary>(`/patients/${id}/summary`),
+};
+
+export const hospitalisationsApi = {
+  admit: (patientId: number, payload: Record<string, unknown>) =>
+    api.post<HospitalisationRecord>(`/patients/${patientId}/hospitalisations`, payload),
+  discharge: (patientId: number, hospitalisationId: number) =>
+    api.patch<HospitalisationRecord>(`/patients/${patientId}/hospitalisations/${hospitalisationId}/discharge`),
+  active: (patientId: number) => api.get<HospitalisationRecord>(`/patients/${patientId}/hospitalisations/active`),
+};
+
+export const dailyAnalysisApi = {
+  list: (patientId: number, hospitalisationId: number, params: Paged = {}) =>
+    api.get<Page<DailyAnalysisEntry>>(
+      `/patients/${patientId}/hospitalisations/${hospitalisationId}/daily-analysis${query({ ...params })}`,
+    ),
+  create: (patientId: number, hospitalisationId: number, payload: Record<string, unknown>) =>
+    api.post<DailyAnalysisEntry>(
+      `/patients/${patientId}/hospitalisations/${hospitalisationId}/daily-analysis`,
+      payload,
+    ),
 };
 
 export const appointmentsApi = {

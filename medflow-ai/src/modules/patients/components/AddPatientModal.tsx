@@ -6,10 +6,23 @@ import { Select } from '../../../shared/components/Select/Select';
 import { Loading } from '../../../shared/components/Loading/Loading';
 import { Alert } from '../../../shared/components/Alert/Alert';
 import { useToast } from '../../../shared/components/Toast/Toast';
+import { HospitalisedCheckbox } from '../../../shared/components/HospitalisedCheckbox/HospitalisedCheckbox';
+import {
+  HospitalisationRecordForm,
+  type DoctorOption,
+  type HospitalisationRecordValues,
+} from '../../../shared/components/HospitalisationRecordForm/HospitalisationRecordForm';
 import { ApiError } from '../../../core/api/client';
-import { patientsApi, settingsApi } from '../../../core/api/services';
+import { doctorsApi, patientsApi, settingsApi } from '../../../core/api/services';
 import type { Patient } from '../../../core/api/types';
 import type { PatientRegistrationField } from '../../settings/types/patientRegistrationProfile';
+
+const emptyHospitalisationValues = (): HospitalisationRecordValues => ({
+  ward: '',
+  bed: '',
+  admittingDoctorId: '',
+  admissionDate: new Date().toISOString().slice(0, 10),
+});
 
 interface Props {
   isOpen: boolean;
@@ -74,6 +87,12 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isHospitalised, setIsHospitalised] = useState(false);
+  const [hospitalisationValues, setHospitalisationValues] = useState<HospitalisationRecordValues>(
+    emptyHospitalisationValues,
+  );
+  const [doctorOptions, setDoctorOptions] = useState<DoctorOption[]>([]);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -82,11 +101,22 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
     setSubmitted(false);
     setActiveField(null);
     setValues({});
+    setIsHospitalised(false);
+    setHospitalisationValues(emptyHospitalisationValues());
     settingsApi.patientRegistrationProfile()
       .then((profile) => setFields(profile.fields.filter((field) => field.currentState !== 'HIDDEN')))
       .catch((cause) => setError(cause instanceof ApiError ? cause.message : 'Could not load registration fields'))
       .finally(() => setLoading(false));
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isHospitalised || doctorOptions.length > 0) return;
+    setIsLoadingDoctors(true);
+    doctorsApi.list({ size: 100 })
+      .then((page) => setDoctorOptions(page.content.map((doctor) => ({ value: String(doctor.id), label: `${doctor.fullName} · ${doctor.specialty}` }))))
+      .catch(() => setDoctorOptions([]))
+      .finally(() => setIsLoadingDoctors(false));
+  }, [isOpen, isHospitalised, doctorOptions.length]);
 
   const groupedFields = useMemo(() => fields.reduce<Record<string, PatientRegistrationField[]>>((groups, field) => {
     (groups[field.fieldGroup] ??= []).push(field);
@@ -168,10 +198,21 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
         guardianName: values.guardianName || undefined,
         guardianRelationship: values.guardianRelationship || undefined,
         guardianMobile: values.guardianMobile || undefined,
+        isHospitalised,
+        hospitalisation: isHospitalised
+          ? {
+              ward: hospitalisationValues.ward,
+              bed: hospitalisationValues.bed,
+              admittingDoctorId: Number(hospitalisationValues.admittingDoctorId),
+              admissionDate: hospitalisationValues.admissionDate,
+            }
+          : undefined,
       });
       onCreated(patient);
       setValues({});
       setSubmitted(false);
+      setIsHospitalised(false);
+      setHospitalisationValues(emptyHospitalisationValues());
       show({ title: 'Patient registered', tone: 'success' });
       onClose();
     } catch (cause) {
@@ -215,6 +256,20 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
               </div>
             </section>
           ))}
+          <section>
+            <h4 style={{ margin: '0 0 var(--mf-space-3)' }}>Hospitalisation</h4>
+            <div style={{ display: 'grid', gap: 'var(--mf-space-4)' }}>
+              <HospitalisedCheckbox checked={isHospitalised} onChange={setIsHospitalised} />
+              {isHospitalised && (
+                <HospitalisationRecordForm
+                  values={hospitalisationValues}
+                  onChange={setHospitalisationValues}
+                  doctorOptions={doctorOptions}
+                  isLoadingDoctors={isLoadingDoctors}
+                />
+              )}
+            </div>
+          </section>
         </form>
       )}
     </Modal>

@@ -12,6 +12,7 @@ export const ROUTES = {
   dashboard: '/dashboard',
   doctors: '/doctors',
   patients: '/patients',
+  patientDetail: '/patients/:id',
   appointments: '/appointments',
   prescriptions: '/prescriptions',
   laboratory: '/laboratory',

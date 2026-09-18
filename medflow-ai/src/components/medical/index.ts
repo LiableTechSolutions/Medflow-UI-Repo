@@ -1,1 +1,10 @@
 export { VitalsLine } from '../../shared/components/VitalsLine/VitalsLine';
+export { HospitalisedCheckbox } from '../../shared/components/HospitalisedCheckbox/HospitalisedCheckbox';
+export { HospitalisationRecordForm } from '../../shared/components/HospitalisationRecordForm/HospitalisationRecordForm';
+export { DailyAnalysisTable } from '../../shared/components/DailyAnalysisTable/DailyAnalysisTable';
+export { PatientStatusSummaryGraph } from '../../shared/components/PatientStatusSummaryGraph/PatientStatusSummaryGraph';
+export { PatientDetailsEditPanel } from '../../shared/components/PatientDetailsEditPanel/PatientDetailsEditPanel';
+export type { DoctorOption, HospitalisationRecordValues } from '../../shared/components/HospitalisationRecordForm/HospitalisationRecordForm';
+export type { DailyAnalysisFormValues } from '../../shared/components/DailyAnalysisTable/DailyAnalysisTable';
+export type { PatientStatusPoint } from '../../shared/components/PatientStatusSummaryGraph/PatientStatusSummaryGraph';
+export type { PatientDetailsEditPayload, PatientDetailsEditValues } from '../../shared/components/PatientDetailsEditPanel/PatientDetailsEditPanel';
