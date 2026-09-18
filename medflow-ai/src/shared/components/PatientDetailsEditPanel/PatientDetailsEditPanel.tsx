@@ -5,8 +5,12 @@ import { Button } from '../Button/Button';
 import { Card, CardBody, CardFooter, CardHeader, CardTitle } from '../Card/Card';
 import { Input } from '../Input/Input';
 import { Select } from '../Select/Select';
+import { SearchableSelect } from '../SearchableSelect/SearchableSelect';
 import { HospitalisedCheckbox } from '../HospitalisedCheckbox/HospitalisedCheckbox';
 import { HospitalisationRecordForm, type DoctorOption, type HospitalisationRecordValues } from '../HospitalisationRecordForm/HospitalisationRecordForm';
+import { useInlineValidation } from '../../hooks/useInlineValidation';
+import { composeValidators, required, validators } from '../../../core/utils/validation';
+import { geoApi } from '../../../core/api/services';
 import type { HospitalisationRecord, Patient } from '../../../core/api/types';
 import './PatientDetailsEditPanel.css';
 
@@ -54,7 +58,7 @@ function hospitalisationValuesFrom(record?: HospitalisationRecord): Hospitalisat
   return record
     ? {
         ward: record.ward,
-        bed: record.bed,
+        bed: record.bed ?? '',
         admittingDoctorId: String(record.admittingDoctorId),
         admissionDate: record.admissionDate?.slice(0, 10) ?? '',
       }
@@ -98,11 +102,14 @@ interface PatientDetailsEditPanelProps {
   onSave: (payload: PatientDetailsEditPayload) => Promise<void> | void;
 }
 
+type ValidatedField = 'firstName' | 'phone' | 'email' | 'postalCode' | 'emergencyContactPhone';
+
 /**
  * Lets staff edit a patient's existing details — and admit/discharge them — without
  * leaving the patient summary page. Shown for both OPD and hospitalised patients.
- * Purely presentational: it never calls the API itself, it hands the new values to
- * `onSave` and lets the page decide which endpoints to call.
+ * Presentational for patient data: it hands the new values to `onSave` and lets the
+ * page decide which endpoints to call. The one exception is the "State" field, which
+ * looks up its own options from `geoApi` — a static geo reference list, not patient data.
  */
 export function PatientDetailsEditPanel({
   patient,
@@ -120,11 +127,20 @@ export function PatientDetailsEditPanel({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const validation = useInlineValidation<ValidatedField>({
+    firstName: composeValidators(required('First name'), validators.personName),
+    phone: validators.indianMobile,
+    email: validators.email,
+    postalCode: validators.postalCode,
+    emergencyContactPhone: validators.indianMobile,
+  });
+
   function startEditing() {
     setValues(coreValuesFromPatient(patient));
     setIsHospitalised(patient.isHospitalised);
     setHospitalisationValues(hospitalisationValuesFrom(hospitalisation));
     setError(null);
+    validation.reset();
     setIsEditing(true);
   }
 
@@ -134,6 +150,8 @@ export function PatientDetailsEditPanel({
 
   async function save(event: FormEvent) {
     event.preventDefault();
+    validation.markSubmitted();
+    if (validation.hasErrors(values)) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -233,14 +251,52 @@ export function PatientDetailsEditPanel({
         )}
         <form id="patient-edit-form" onSubmit={save} className="mf-patient-edit__form">
           <div className="mf-patient-edit__grid">
-            <Input label="First name" value={values.firstName} onChange={(e) => setField('firstName', e.target.value)} />
+            <Input
+              label="First name *"
+              value={values.firstName}
+              error={validation.errorFor('firstName', values.firstName)}
+              onFocus={validation.handleFocus('firstName')}
+              onBlur={validation.handleBlur('firstName')}
+              onChange={(e) => setField('firstName', e.target.value)}
+            />
             <Input label="Last name" value={values.lastName} onChange={(e) => setField('lastName', e.target.value)} />
-            <Input label="Phone" type="tel" value={values.phone} onChange={(e) => setField('phone', e.target.value)} />
-            <Input label="Email" type="email" value={values.email} onChange={(e) => setField('email', e.target.value)} />
+            <Input
+              label="Phone"
+              type="tel"
+              hint="India: 10 digits starting with 6-9, with optional +91 — no country-code selector needed"
+              value={values.phone}
+              error={validation.errorFor('phone', values.phone)}
+              onFocus={validation.handleFocus('phone')}
+              onBlur={validation.handleBlur('phone')}
+              onChange={(e) => setField('phone', e.target.value)}
+            />
+            <Input
+              label="Email"
+              type="email"
+              value={values.email}
+              error={validation.errorFor('email', values.email)}
+              onFocus={validation.handleFocus('email')}
+              onBlur={validation.handleBlur('email')}
+              onChange={(e) => setField('email', e.target.value)}
+            />
             <Input label="Address" value={values.address} onChange={(e) => setField('address', e.target.value)} />
             <Input label="City" value={values.city} onChange={(e) => setField('city', e.target.value)} />
-            <Input label="State" value={values.state} onChange={(e) => setField('state', e.target.value)} />
-            <Input label="Postal code" value={values.postalCode} onChange={(e) => setField('postalCode', e.target.value)} />
+            <SearchableSelect
+              label="State"
+              placeholder="Search for a state…"
+              value={values.state}
+              onChange={(value) => setField('state', value)}
+              loadOptions={() => geoApi.states('India')}
+            />
+            <Input
+              label="Postal code"
+              hint="6-digit Indian PIN code"
+              value={values.postalCode}
+              error={validation.errorFor('postalCode', values.postalCode)}
+              onFocus={validation.handleFocus('postalCode')}
+              onBlur={validation.handleBlur('postalCode')}
+              onChange={(e) => setField('postalCode', e.target.value)}
+            />
             <Select
               label="Blood group"
               value={values.bloodGroup}
@@ -258,6 +314,9 @@ export function PatientDetailsEditPanel({
               label="Emergency contact phone"
               type="tel"
               value={values.emergencyContactPhone}
+              error={validation.errorFor('emergencyContactPhone', values.emergencyContactPhone)}
+              onFocus={validation.handleFocus('emergencyContactPhone')}
+              onBlur={validation.handleBlur('emergencyContactPhone')}
               onChange={(e) => setField('emergencyContactPhone', e.target.value)}
             />
             <Input

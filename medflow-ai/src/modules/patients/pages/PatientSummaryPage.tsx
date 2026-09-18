@@ -16,14 +16,12 @@ import { PatientDetailsEditPanel, type PatientDetailsEditPayload } from '../../.
 import { dailyAnalysisApi, doctorsApi, hospitalisationsApi, patientsApi } from '../../../core/api/services';
 import { ApiError } from '../../../core/api/client';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
-import { useAuth } from '../../../core/auth/AuthContext';
 
 export default function PatientSummaryPage() {
   const { id } = useParams<{ id: string }>();
   const patientId = Number(id);
   const navigate = useNavigate();
   const { show } = useToast();
-  const { user } = useAuth();
 
   const { data: summary, error, isLoading, reload } = useApiResource(() => patientsApi.summary(patientId), [patientId]);
   const { data: doctorsPage } = useApiResource(() => doctorsApi.list({ size: 100 }), []);
@@ -36,15 +34,13 @@ export default function PatientSummaryPage() {
 
   async function addDailyAnalysisEntry(values: DailyAnalysisFormValues) {
     if (!summary?.hospitalisation) throw new Error('There is no active admission to record against.');
-    await dailyAnalysisApi.create(patientId, summary.hospitalisation.id, {
-      entryDate: values.entryDate,
-      bloodPressureSystolic: Number(values.bloodPressureSystolic),
-      bloodPressureDiastolic: Number(values.bloodPressureDiastolic),
-      pulseRate: Number(values.pulseRate),
+    await dailyAnalysisApi.create(patientId, {
+      recordedByDoctorId: Number(values.recordedByDoctorId),
+      bloodPressure: `${values.bloodPressureSystolic}/${values.bloodPressureDiastolic}`,
+      pulse: Number(values.pulseRate),
       temperature: Number(values.temperature),
       spo2: Number(values.spo2),
       notes: values.notes || undefined,
-      recordedBy: values.recordedBy,
     });
     show({ title: 'Daily analysis entry added', tone: 'success' });
     reload();
@@ -54,7 +50,7 @@ export default function PatientSummaryPage() {
     if (!summary?.hospitalisation) return;
     setDischargeSubmitting(true);
     try {
-      await hospitalisationsApi.discharge(patientId, summary.hospitalisation.id);
+      await hospitalisationsApi.discharge(patientId);
       show({ title: 'Patient discharged', tone: 'success' });
       reload();
     } catch (cause) {
@@ -69,7 +65,14 @@ export default function PatientSummaryPage() {
   }
 
   async function savePatientDetails(payload: PatientDetailsEditPayload) {
-    await patientsApi.update(patientId, { ...payload.patient, isHospitalised: payload.isHospitalised });
+    // `PUT /patients/:id` replaces the whole profile, so the account `status` the panel
+    // never shows must still ride along — omitting it is what caused
+    // "status must not be null" whenever this fired, including from the checkbox toggle.
+    await patientsApi.update(patientId, {
+      ...payload.patient,
+      status: patient.status,
+      isHospitalised: payload.isHospitalised,
+    });
 
     if (payload.isHospitalised && !payload.wasHospitalised && payload.hospitalisation) {
       await hospitalisationsApi.admit(patientId, {
@@ -79,7 +82,7 @@ export default function PatientSummaryPage() {
         admissionDate: payload.hospitalisation.admissionDate,
       });
     } else if (!payload.isHospitalised && payload.wasHospitalised && summary?.hospitalisation) {
-      await hospitalisationsApi.discharge(patientId, summary.hospitalisation.id);
+      await hospitalisationsApi.discharge(patientId);
     }
 
     show({ title: 'Patient details updated', tone: 'success' });
@@ -116,20 +119,23 @@ export default function PatientSummaryPage() {
   const hospitalisationValues: HospitalisationRecordValues = hospitalisation
     ? {
         ward: hospitalisation.ward,
-        bed: hospitalisation.bed,
+        bed: hospitalisation.bed ?? '',
         admittingDoctorId: String(hospitalisation.admittingDoctorId),
         admissionDate: hospitalisation.admissionDate?.slice(0, 10) ?? '',
       }
     : { ward: '', bed: '', admittingDoctorId: '', admissionDate: '' };
 
-  const trendPoints: PatientStatusPoint[] = dailyAnalyses.map((entry) => ({
-    date: entry.entryDate,
-    bloodPressureSystolic: entry.bloodPressureSystolic,
-    bloodPressureDiastolic: entry.bloodPressureDiastolic,
-    pulseRate: entry.pulseRate,
-    temperature: entry.temperature,
-    spo2: entry.spo2,
-  }));
+  const trendPoints: PatientStatusPoint[] = dailyAnalyses.map((entry) => {
+    const [systolic, diastolic] = (entry.bloodPressure ?? '').split('/').map((part) => Number(part.trim()));
+    return {
+      date: entry.recordedAt,
+      bloodPressureSystolic: systolic || 0,
+      bloodPressureDiastolic: diastolic || 0,
+      pulseRate: entry.pulse ?? 0,
+      temperature: entry.temperature ?? 0,
+      spo2: entry.spo2 ?? 0,
+    };
+  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--mf-space-5)' }}>
@@ -196,7 +202,6 @@ export default function PatientSummaryPage() {
                 doctorOptions={doctorOptions}
                 readOnly
                 status={hospitalisation.status}
-                admittingDoctorName={hospitalisation.admittingDoctorName}
               />
             </CardBody>
           </Card>
@@ -215,7 +220,7 @@ export default function PatientSummaryPage() {
               <DailyAnalysisTable
                 entries={dailyAnalyses}
                 onAddEntry={addDailyAnalysisEntry}
-                defaultRecordedBy={user?.fullName ?? ''}
+                doctorOptions={doctorOptions}
               />
             </CardBody>
           </Card>

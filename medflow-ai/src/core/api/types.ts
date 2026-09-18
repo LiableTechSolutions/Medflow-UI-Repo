@@ -128,40 +128,53 @@ export interface Patient {
 
 export type HospitalisationStatus = 'ADMITTED' | 'DISCHARGED';
 
-/** An inpatient admission record. Discharge is a separate action, not captured at creation. */
+/**
+ * An inpatient admission record, matching `HospitalisationRecordResponse` on the BFF.
+ * Discharge is a separate action, not captured at creation. The BFF does not resolve
+ * the admitting doctor's name — look it up from `doctorOptions` by `admittingDoctorId`.
+ */
 export interface HospitalisationRecord {
   id: number;
   patientId: number;
   ward: string;
-  bed: string;
+  bed?: string;
   admittingDoctorId: number;
-  admittingDoctorName?: string;
   admissionDate: string;
   dischargeDate?: string;
   status: HospitalisationStatus;
   createdAt: string;
 }
 
-/** One day's vitals/observations logged against an active hospitalisation. */
+/**
+ * One day's vitals/observations logged against an active hospitalisation, matching
+ * `DailyAnalysisResponse` on the BFF — blood pressure is one combined "120/80" string,
+ * and the recorder is the doctor's id, not a free-text name.
+ */
 export interface DailyAnalysisEntry {
   id: number;
-  hospitalisationId: number;
+  hospitalisationRecordId: number;
   patientId: number;
-  entryDate: string;
-  bloodPressureSystolic: number;
-  bloodPressureDiastolic: number;
-  pulseRate: number;
-  temperature: number;
-  spo2: number;
+  bloodPressure?: string;
+  pulse?: number;
+  temperature?: number;
+  spo2?: number;
   notes?: string;
-  recordedBy: string;
-  createdAt: string;
+  recordedByDoctorId: number;
+  recordedAt: string;
 }
 
 /** Combined payload for the patient summary screen. */
 export interface PatientSummary {
   patient: Patient;
   hospitalisation?: HospitalisationRecord;
+  dailyAnalyses: DailyAnalysisEntry[];
+}
+
+/** Raw shape of `GET /patients/:id/summary` (`PatientClinicalSummaryResponse` on the BFF). */
+export interface PatientClinicalSummaryDto {
+  patient: Patient;
+  isHospitalised: boolean;
+  currentHospitalisation: HospitalisationRecord | null;
   dailyAnalyses: DailyAnalysisEntry[];
 }
 

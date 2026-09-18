@@ -1,35 +1,37 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DailyAnalysisTable } from './DailyAnalysisTable';
 import type { DailyAnalysisEntry } from '../../../core/api/types';
+import type { DoctorOption } from '../HospitalisationRecordForm/HospitalisationRecordForm';
+
+const doctorOptions: DoctorOption[] = [
+  { value: '7', label: 'Dr. Karan Mehta · General Medicine' },
+  { value: '9', label: 'Dr. Anjali Singh · Cardiology' },
+];
 
 const entries: DailyAnalysisEntry[] = [
   {
     id: 1,
-    hospitalisationId: 100,
+    hospitalisationRecordId: 100,
     patientId: 42,
-    entryDate: '2026-09-16',
-    bloodPressureSystolic: 128,
-    bloodPressureDiastolic: 82,
-    pulseRate: 78,
+    bloodPressure: '128/82',
+    pulse: 78,
     temperature: 99.1,
     spo2: 97,
     notes: 'Stable, mild cough persists.',
-    recordedBy: 'Nurse Anjali Singh',
-    createdAt: '2026-09-16T08:00:00Z',
+    recordedByDoctorId: 9,
+    recordedAt: '2026-09-16T08:00:00Z',
   },
   {
     id: 2,
-    hospitalisationId: 100,
+    hospitalisationRecordId: 100,
     patientId: 42,
-    entryDate: '2026-09-17',
-    bloodPressureSystolic: 122,
-    bloodPressureDiastolic: 79,
-    pulseRate: 74,
+    bloodPressure: '122/79',
+    pulse: 74,
     temperature: 98.4,
     spo2: 98,
     notes: undefined,
-    recordedBy: 'Dr. Karan Mehta',
-    createdAt: '2026-09-17T08:00:00Z',
+    recordedByDoctorId: 7,
+    recordedAt: '2026-09-17T08:00:00Z',
   },
 ];
 
@@ -44,7 +46,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     entries,
-    defaultRecordedBy: 'Nurse Anjali Singh',
+    doctorOptions,
     onAddEntry: async () => {},
   },
 };
@@ -52,7 +54,7 @@ export const Default: Story = {
 export const Empty: Story = {
   args: {
     entries: [],
-    defaultRecordedBy: 'Nurse Anjali Singh',
+    doctorOptions,
     onAddEntry: async () => {},
   },
 };
@@ -60,6 +62,7 @@ export const Empty: Story = {
 export const Loading: Story = {
   args: {
     entries: [],
+    doctorOptions,
     isLoading: true,
   },
 };
@@ -67,6 +70,7 @@ export const Loading: Story = {
 export const ErrorState: Story = {
   args: {
     entries: [],
+    doctorOptions,
     error: 'Could not reach the API to load daily analysis entries.',
   },
 };
@@ -74,5 +78,6 @@ export const ErrorState: Story = {
 export const ReadOnly: Story = {
   args: {
     entries,
+    doctorOptions,
   },
 };

@@ -1,0 +1,50 @@
+.mf-searchable-select {
+  position: relative;
+}
+
+.mf-searchable-select__spinner {
+  animation: mf-searchable-select-spin 0.8s linear infinite;
+}
+
+@keyframes mf-searchable-select-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.mf-searchable-select__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: var(--mf-space-2) 0;
+  max-height: 260px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--mf-surface-raised);
+  border: 1px solid var(--mf-border-strong);
+  border-radius: var(--mf-radius-md);
+  box-shadow: var(--mf-shadow-lg);
+}
+
+.mf-searchable-select__option {
+  padding: var(--mf-space-2) var(--mf-space-4);
+  font-size: var(--mf-fs-sm);
+  color: var(--mf-ink-900);
+  cursor: pointer;
+}
+
+.mf-searchable-select__option--active {
+  background: var(--mf-blue-50);
+}
+
+.mf-searchable-select__option--selected {
+  font-weight: 600;
+}
+
+.mf-searchable-select__status {
+  padding: var(--mf-space-2) var(--mf-space-4);
+  font-size: var(--mf-fs-sm);
+  color: var(--mf-ink-400);
+}

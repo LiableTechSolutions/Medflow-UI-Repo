@@ -36,7 +36,6 @@ const activeHospitalisation: HospitalisationRecord = {
   ward: 'General Ward B',
   bed: 'B-14',
   admittingDoctorId: 2,
-  admittingDoctorName: 'Dr. Karan Mehta',
   admissionDate: '2026-09-15',
   status: 'ADMITTED',
   createdAt: '2026-09-15T10:00:00Z',

@@ -15,6 +15,7 @@ import type {
   ModuleEntitlement,
   Notification,
   Patient,
+  PatientClinicalSummaryDto,
   PatientSummary,
   Prescription,
   Role,
@@ -69,27 +70,73 @@ export const patientsApi = {
   create: (payload: Record<string, unknown>) => api.post<Patient>('/patients', payload),
   update: (id: number, payload: Record<string, unknown>) => api.put<Patient>(`/patients/${id}`, payload),
   /** Patient + active hospitalisation (if any) + its daily analysis entries, for the summary screen. */
-  summary: (id: number) => api.get<PatientSummary>(`/patients/${id}/summary`),
+  summary: (id: number) =>
+    api.get<PatientClinicalSummaryDto>(`/patients/${id}/summary`).then(
+      (dto): PatientSummary => ({
+        patient: dto.patient,
+        hospitalisation: dto.currentHospitalisation ?? undefined,
+        dailyAnalyses: dto.dailyAnalyses,
+      }),
+    ),
 };
 
+// Route shapes below match `PatientController` on the BFF exactly: everything hangs off
+// `/patients/{patientId}/hospitalisation` (singular) and always acts on that patient's
+// current active admission — none of these calls take a separate hospitalisation id.
 export const hospitalisationsApi = {
   admit: (patientId: number, payload: Record<string, unknown>) =>
-    api.post<HospitalisationRecord>(`/patients/${patientId}/hospitalisations`, payload),
-  discharge: (patientId: number, hospitalisationId: number) =>
-    api.patch<HospitalisationRecord>(`/patients/${patientId}/hospitalisations/${hospitalisationId}/discharge`),
-  active: (patientId: number) => api.get<HospitalisationRecord>(`/patients/${patientId}/hospitalisations/active`),
+    api.post<HospitalisationRecord>(`/patients/${patientId}/hospitalisation`, payload),
+  discharge: (patientId: number, dischargeDate?: string) =>
+    api.patch<HospitalisationRecord>(`/patients/${patientId}/hospitalisation/discharge`, { dischargeDate }),
 };
 
 export const dailyAnalysisApi = {
-  list: (patientId: number, hospitalisationId: number, params: Paged = {}) =>
-    api.get<Page<DailyAnalysisEntry>>(
-      `/patients/${patientId}/hospitalisations/${hospitalisationId}/daily-analysis${query({ ...params })}`,
-    ),
-  create: (patientId: number, hospitalisationId: number, payload: Record<string, unknown>) =>
-    api.post<DailyAnalysisEntry>(
-      `/patients/${patientId}/hospitalisations/${hospitalisationId}/daily-analysis`,
-      payload,
-    ),
+  list: (patientId: number) =>
+    api.get<DailyAnalysisEntry[]>(`/patients/${patientId}/hospitalisation/daily-analyses`),
+  create: (patientId: number, payload: Record<string, unknown>) =>
+    api.post<DailyAnalysisEntry>(`/patients/${patientId}/hospitalisation/daily-analyses`, payload),
+};
+
+/**
+ * India-only country/state lookup for `SearchableSelect` fields. Backed by the free,
+ * CORS-enabled countriesnow.space API with a static fallback so the "State" field still
+ * works (offline, in tests, in Storybook) if that third-party API is unreachable.
+ */
+const FALLBACK_INDIAN_STATES = [
+  'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chandigarh',
+  'Chhattisgarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Goa', 'Gujarat', 'Haryana',
+  'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Karnataka', 'Kerala', 'Ladakh',
+  'Lakshadweep', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
+  'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+];
+
+export const geoApi = {
+  /** Resolves a country name to its states/provinces. Defaults to India. */
+  states: async (country: string = 'India') => {
+    try {
+      const response = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country }),
+      });
+      const body = (await response.json()) as { error: boolean; data?: { states: { name: string }[] } };
+      if (body.error || !body.data) throw new Error('geo lookup failed');
+      return body.data.states.map((state) => ({ value: state.name, label: state.name }));
+    } catch {
+      return FALLBACK_INDIAN_STATES.map((name) => ({ value: name, label: name }));
+    }
+  },
+  countries: async () => {
+    try {
+      const response = await fetch('https://countriesnow.space/api/v0.1/countries/positions');
+      const body = (await response.json()) as { error: boolean; data?: { name: string }[] };
+      if (body.error || !body.data) throw new Error('geo lookup failed');
+      return body.data.map((entry) => ({ value: entry.name, label: entry.name }));
+    } catch {
+      return [{ value: 'India', label: 'India' }];
+    }
+  },
 };
 
 export const appointmentsApi = {
