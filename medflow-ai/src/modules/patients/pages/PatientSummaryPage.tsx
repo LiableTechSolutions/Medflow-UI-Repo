@@ -12,10 +12,54 @@ import { useApiResource } from '../../../shared/hooks/useApiResource';
 import { HospitalisationRecordForm, type HospitalisationRecordValues } from '../../../shared/components/HospitalisationRecordForm/HospitalisationRecordForm';
 import { DailyAnalysisTable, type DailyAnalysisFormValues } from '../../../shared/components/DailyAnalysisTable/DailyAnalysisTable';
 import { PatientStatusSummaryGraph, type PatientStatusPoint } from '../../../shared/components/PatientStatusSummaryGraph/PatientStatusSummaryGraph';
-import { PatientDetailsEditPanel, type PatientDetailsEditPayload } from '../../../shared/components/PatientDetailsEditPanel/PatientDetailsEditPanel';
+import {
+  PatientDetailsEditPanel,
+  type PatientDetailsEditPayload,
+  type PatientDetailsEditValues,
+} from '../../../shared/components/PatientDetailsEditPanel/PatientDetailsEditPanel';
 import { dailyAnalysisApi, doctorsApi, hospitalisationsApi, patientsApi } from '../../../core/api/services';
 import { ApiError } from '../../../core/api/client';
-import { formatDate, humanize, statusTone } from '../../../core/utils/format';
+import { formatDate, humanize, statusTone, toIsoInstant } from '../../../core/utils/format';
+import type { Patient } from '../../../core/api/types';
+
+/**
+ * `PUT /patients/:id` replaces the whole profile in one shot, but the edit panel only
+ * collects a subset of fields (and never `isHospitalised`, which isn't part of that
+ * request at all — it's derived from admit/discharge). Build the request from the
+ * patient's current values first, so anything the panel doesn't show (date of birth,
+ * gender, ...) survives instead of being wiped to null and tripping the hospital's
+ * "required field" checks on the way back in.
+ */
+function buildPatientUpdatePayload(patient: Patient, edits: PatientDetailsEditValues) {
+  return {
+    firstName: edits.firstName ?? patient.firstName,
+    lastName: edits.lastName ?? patient.lastName,
+    gender: patient.gender,
+    dateOfBirth: patient.dateOfBirth,
+    bloodGroup: edits.bloodGroup ?? patient.bloodGroup,
+    phone: edits.phone ?? patient.phone,
+    email: edits.email ?? patient.email,
+    address: edits.address ?? patient.address,
+    emergencyContactName: edits.emergencyContactName ?? patient.emergencyContactName,
+    emergencyContactPhone: edits.emergencyContactPhone ?? patient.emergencyContactPhone,
+    status: patient.status,
+    city: edits.city ?? patient.city,
+    state: edits.state ?? patient.state,
+    postalCode: edits.postalCode ?? patient.postalCode,
+    preferredLanguage: patient.preferredLanguage,
+    emergencyContactRelationship: patient.emergencyContactRelationship,
+    insuranceProvider: edits.insuranceProvider ?? patient.insuranceProvider,
+    memberId: edits.memberId ?? patient.memberId,
+    governmentIdType: patient.governmentIdType,
+    governmentIdNumber: patient.governmentIdNumber,
+    allergies: edits.allergies ?? patient.allergies,
+    consentStatus: patient.consentStatus,
+    referringPhysician: edits.referringPhysician ?? patient.referringPhysician,
+    guardianName: patient.guardianName,
+    guardianRelationship: patient.guardianRelationship,
+    guardianMobile: patient.guardianMobile,
+  };
+}
 
 export default function PatientSummaryPage() {
   const { id } = useParams<{ id: string }>();
@@ -65,23 +109,20 @@ export default function PatientSummaryPage() {
   }
 
   async function savePatientDetails(payload: PatientDetailsEditPayload) {
-    // `PUT /patients/:id` replaces the whole profile, so the account `status` the panel
-    // never shows must still ride along — omitting it is what caused
-    // "status must not be null" whenever this fired, including from the checkbox toggle.
-    await patientsApi.update(patientId, {
-      ...payload.patient,
-      status: patient.status,
-      isHospitalised: payload.isHospitalised,
-    });
+    if (!summary) return;
+    // Note: `isHospitalised` is never part of this call — `UpdatePatientRequest` has no
+    // such field (it's derived from admit/discharge), and sending it was rejected
+    // outright as an unrecognised property ("Malformed request body").
+    await patientsApi.update(patientId, buildPatientUpdatePayload(summary.patient, payload.patient));
 
     if (payload.isHospitalised && !payload.wasHospitalised && payload.hospitalisation) {
       await hospitalisationsApi.admit(patientId, {
         ward: payload.hospitalisation.ward,
         bed: payload.hospitalisation.bed,
         admittingDoctorId: Number(payload.hospitalisation.admittingDoctorId),
-        admissionDate: payload.hospitalisation.admissionDate,
+        admissionDate: toIsoInstant(payload.hospitalisation.admissionDate),
       });
-    } else if (!payload.isHospitalised && payload.wasHospitalised && summary?.hospitalisation) {
+    } else if (!payload.isHospitalised && payload.wasHospitalised && summary.hospitalisation) {
       await hospitalisationsApi.discharge(patientId);
     }
 

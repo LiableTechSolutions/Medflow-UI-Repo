@@ -24,6 +24,15 @@ export const formatTime = (iso?: string | null) =>
 export const formatDate = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
+/**
+ * Converts a bare `yyyy-mm-dd` (what an `<input type="date">` gives you) into a full
+ * ISO-8601 instant. The BFF's `Instant` fields (admission/discharge dates) reject a
+ * date-only string outright with "Malformed request body" — they need the time and
+ * offset too.
+ */
+export const toIsoInstant = (dateOnly: string): string =>
+  dateOnly.includes('T') ? dateOnly : new Date(`${dateOnly}T00:00:00Z`).toISOString();
+
 /** BOOKED → Booked, IN_CONSULTATION → In consultation */
 export const humanize = (value?: string | null) =>
   value ? value.charAt(0) + value.slice(1).toLowerCase().replace(/_/g, ' ') : '—';

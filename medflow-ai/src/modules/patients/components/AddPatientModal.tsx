@@ -18,6 +18,7 @@ import { doctorsApi, geoApi, patientsApi, settingsApi } from '../../../core/api/
 import type { Patient } from '../../../core/api/types';
 import type { PatientRegistrationField } from '../../settings/types/patientRegistrationProfile';
 import { validators } from '../../../core/utils/validation';
+import { toIsoInstant } from '../../../core/utils/format';
 
 const emptyHospitalisationValues = (): HospitalisationRecordValues => ({
   ward: '',
@@ -203,7 +204,7 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
               ward: hospitalisationValues.ward,
               bed: hospitalisationValues.bed,
               admittingDoctorId: Number(hospitalisationValues.admittingDoctorId),
-              admissionDate: hospitalisationValues.admissionDate,
+              admissionDate: toIsoInstant(hospitalisationValues.admissionDate),
             }
           : undefined,
       });
