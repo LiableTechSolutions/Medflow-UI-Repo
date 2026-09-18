@@ -6,6 +6,7 @@ import { Input } from '../Input/Input';
 import { Select } from '../Select/Select';
 import { Loading } from '../Loading/Loading';
 import { Modal } from '../Modal/Modal';
+import { Pagination } from '../Pagination/Pagination';
 import { Table, type TableColumn } from '../Table/Table';
 import { useInlineValidation } from '../../hooks/useInlineValidation';
 import { composeValidators, numberInRange, required } from '../../../core/utils/validation';
@@ -68,6 +69,12 @@ export function DailyAnalysisTable({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [values, setValues] = useState<DailyAnalysisFormValues>(emptyFormValues);
+  const [page, setPage] = useState(1);
+
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(entries.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedEntries = entries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const validation = useInlineValidation<FormField>({
     recordedByDoctorId: required('Recorded by'),
@@ -135,7 +142,19 @@ export function DailyAnalysisTable({
       {isLoading ? (
         <Loading label="Loading daily analysis…" />
       ) : (
-        <Table columns={columns} data={entries} rowKey={(row) => row.id} emptyMessage={emptyMessage} />
+        <>
+          <Table columns={columns} data={pagedEntries} rowKey={(row) => row.id} emptyMessage={emptyMessage} />
+          {totalPages > 1 && (
+            <div className="mf-daily-analysis__pagination">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                summary={`Showing ${pagedEntries.length} of ${entries.length}`}
+              />
+            </div>
+          )}
+        </>
       )}
 
       <Modal

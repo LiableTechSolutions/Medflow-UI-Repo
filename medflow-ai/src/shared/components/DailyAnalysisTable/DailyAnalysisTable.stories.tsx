@@ -35,6 +35,19 @@ const entries: DailyAnalysisEntry[] = [
   },
 ];
 
+const manyEntries: DailyAnalysisEntry[] = Array.from({ length: 23 }, (_, i) => ({
+  id: i + 1,
+  hospitalisationRecordId: 100,
+  patientId: 42,
+  bloodPressure: `${120 + (i % 10)}/${78 + (i % 6)}`,
+  pulse: 70 + (i % 15),
+  temperature: 98 + (i % 3) * 0.4,
+  spo2: 95 + (i % 5),
+  notes: i % 4 === 0 ? 'Routine check, no complaints.' : undefined,
+  recordedByDoctorId: i % 2 === 0 ? 9 : 7,
+  recordedAt: new Date(Date.UTC(2026, 8, 1 + i, 8, 0, 0)).toISOString(),
+}));
+
 const meta = {
   title: 'MedFlow Design System/Medical/Daily Analysis Table',
   component: DailyAnalysisTable,
@@ -79,5 +92,13 @@ export const ReadOnly: Story = {
   args: {
     entries,
     doctorOptions,
+  },
+};
+
+export const Paginated: Story = {
+  args: {
+    entries: manyEntries,
+    doctorOptions,
+    onAddEntry: async () => {},
   },
 };

@@ -2,6 +2,7 @@ import { Badge } from '../Badge/Badge';
 import { Input } from '../Input/Input';
 import { Select } from '../Select/Select';
 import { formatDate, humanize } from '../../../core/utils/format';
+import { notFutureDate, todayDateOnly } from '../../../core/utils/validation';
 import type { HospitalisationStatus } from '../../../core/api/types';
 import './HospitalisationRecordForm.css';
 
@@ -112,8 +113,9 @@ export function HospitalisationRecordForm({
         <Input
           label="Admission date *"
           type="date"
+          max={todayDateOnly()}
           value={values.admissionDate}
-          error={errors?.admissionDate}
+          error={errors?.admissionDate ?? notFutureDate(values.admissionDate)}
           onChange={(event) => setField('admissionDate', event.target.value)}
         />
       </div>

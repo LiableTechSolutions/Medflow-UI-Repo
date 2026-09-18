@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { UserPlus } from 'lucide-react';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Button } from '../../../shared/components/Button/Button';
 import { Select } from '../../../shared/components/Select/Select';
 import { useToast } from '../../../shared/components/Toast/Toast';
+import { AddPatientModal } from '../../patients/components/AddPatientModal';
 import { appointmentsApi } from '../../../core/api/services';
 import { ApiError } from '../../../core/api/client';
 import { formatDateTime, humanize, statusTone } from '../../../core/utils/format';
@@ -32,6 +34,7 @@ export default function AppointmentsPage() {
   const { show } = useToast();
   const [status, setStatus] = useState('');
   const [version, setVersion] = useState(0);
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
 
   async function advance(row: Appointment) {
     const next = NEXT_ACTION[row.status];
@@ -50,6 +53,7 @@ export default function AppointmentsPage() {
   }
 
   return (
+    <>
     <DataPage<Appointment>
       title="Appointment Management"
       description="Booking, the day's queue and the consultation workflow."
@@ -58,6 +62,11 @@ export default function AppointmentsPage() {
       deps={[status, version]}
       load={({ page, size }) => appointmentsApi.list({ page, size, status: status || undefined })}
       emptyMessage="No appointments for this filter."
+      actions={
+        <Button leftIcon={<UserPlus size={16} />} onClick={() => setIsAddPatientOpen(true)}>
+          Add Patient
+        </Button>
+      }
       toolbar={
         <div style={{ minWidth: 220 }}>
           <Select
@@ -105,5 +114,12 @@ export default function AppointmentsPage() {
         },
       ]}
     />
+    {/* AddPatientModal shows its own "Patient registered" toast and closes itself on success. */}
+    <AddPatientModal
+      isOpen={isAddPatientOpen}
+      onClose={() => setIsAddPatientOpen(false)}
+      onCreated={() => setIsAddPatientOpen(false)}
+    />
+    </>
   );
 }

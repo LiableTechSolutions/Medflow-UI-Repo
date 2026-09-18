@@ -68,3 +68,12 @@ export const validators = {
 export function normalizeIndianMobile(value: string): string {
   return value.trim().replace(/^(?:\+91|91)[ -]?/, '').replace(/[ -]/g, '');
 }
+
+/** Today's date as `yyyy-mm-dd`, for capping an `<input type="date">`'s `max` attribute. */
+export const todayDateOnly = (): string => new Date().toISOString().slice(0, 10);
+
+/** Rejects any `yyyy-mm-dd` value later than today — for DOB, admission date, etc. */
+export const notFutureDate: Validator = (value) => {
+  if (!value.trim()) return undefined;
+  return value > todayDateOnly() ? 'This date cannot be in the future' : undefined;
+};

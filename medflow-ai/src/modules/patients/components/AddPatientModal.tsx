@@ -17,7 +17,7 @@ import { ApiError } from '../../../core/api/client';
 import { doctorsApi, geoApi, patientsApi, settingsApi } from '../../../core/api/services';
 import type { Patient } from '../../../core/api/types';
 import type { PatientRegistrationField } from '../../settings/types/patientRegistrationProfile';
-import { validators } from '../../../core/utils/validation';
+import { todayDateOnly, validators } from '../../../core/utils/validation';
 import { toIsoInstant } from '../../../core/utils/format';
 
 const emptyHospitalisationValues = (): HospitalisationRecordValues => ({
@@ -256,7 +256,7 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
         />
       );
     }
-    return <Input key={field.fieldKey} label={label} hint={field.fieldKey.includes('MOBILE') ? 'India: 10 digits starting with 6-9, with optional +91' : field.fieldKey === 'POSTAL_CODE' ? '6-digit Indian PIN code' : undefined} type={field.fieldKey === 'DATE_OF_BIRTH' ? 'date' : field.fieldKey.includes('MOBILE') || field.fieldKey === 'MOBILE' ? 'tel' : 'text'} value={values[input] ?? ''} error={errorMessage} onFocus={onFocus} onBlur={onBlur} onChange={(event) => onChange(event.target.value)} />;
+    return <Input key={field.fieldKey} label={label} hint={field.fieldKey.includes('MOBILE') ? 'India: 10 digits starting with 6-9, with optional +91' : field.fieldKey === 'POSTAL_CODE' ? '6-digit Indian PIN code' : undefined} type={field.fieldKey === 'DATE_OF_BIRTH' ? 'date' : field.fieldKey.includes('MOBILE') || field.fieldKey === 'MOBILE' ? 'tel' : 'text'} max={field.fieldKey === 'DATE_OF_BIRTH' ? todayDateOnly() : undefined} value={values[input] ?? ''} error={errorMessage} onFocus={onFocus} onBlur={onBlur} onChange={(event) => onChange(event.target.value)} />;
   }
 
   return (
