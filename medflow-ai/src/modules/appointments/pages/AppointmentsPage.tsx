@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { UserPlus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CalendarPlus, UserPlus } from 'lucide-react';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Button } from '../../../shared/components/Button/Button';
 import { Select } from '../../../shared/components/Select/Select';
 import { useToast } from '../../../shared/components/Toast/Toast';
 import { AddPatientModal } from '../../patients/components/AddPatientModal';
+import { BookAppointmentModal } from '../components/BookAppointmentModal';
 import { appointmentsApi } from '../../../core/api/services';
 import { ApiError } from '../../../core/api/client';
 import { formatDateTime, humanize, statusTone } from '../../../core/utils/format';
@@ -32,9 +34,22 @@ const NEXT_ACTION: Partial<Record<AppointmentStatus, { action: string; label: st
 
 export default function AppointmentsPage() {
   const { show } = useToast();
+  const navigate = useNavigate();
   const [status, setStatus] = useState('');
   const [version, setVersion] = useState(0);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [isBookOpen, setIsBookOpen] = useState(false);
+
+  function onBooked(appointment: Appointment) {
+    setIsBookOpen(false);
+    setVersion((v) => v + 1);
+    show({
+      title: 'Appointment booked',
+      description: `${appointment.patientName} is #${appointment.queueNumber ?? '—'} in the queue. They've been notified.`,
+      tone: 'success',
+    });
+    navigate(`/appointments/${appointment.id}/queue`);
+  }
 
   async function advance(row: Appointment) {
     const next = NEXT_ACTION[row.status];
@@ -62,10 +77,16 @@ export default function AppointmentsPage() {
       deps={[status, version]}
       load={({ page, size }) => appointmentsApi.list({ page, size, status: status || undefined })}
       emptyMessage="No appointments for this filter."
+      onRowClick={(row) => navigate(`/appointments/${row.id}/queue`)}
       actions={
-        <Button leftIcon={<UserPlus size={16} />} onClick={() => setIsAddPatientOpen(true)}>
-          Add Patient
-        </Button>
+        <div style={{ display: 'flex', gap: 'var(--mf-space-3)' }}>
+          <Button variant="outline" leftIcon={<UserPlus size={16} />} onClick={() => setIsAddPatientOpen(true)}>
+            Add Patient
+          </Button>
+          <Button leftIcon={<CalendarPlus size={16} />} onClick={() => setIsBookOpen(true)}>
+            New Appointment
+          </Button>
+        </div>
       }
       toolbar={
         <div style={{ minWidth: 220 }}>
@@ -107,7 +128,14 @@ export default function AppointmentsPage() {
           align: 'right',
           render: (row) =>
             NEXT_ACTION[row.status] ? (
-              <Button size="sm" variant="outline" onClick={() => advance(row)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  advance(row);
+                }}
+              >
                 {NEXT_ACTION[row.status]!.label}
               </Button>
             ) : null,
@@ -119,6 +147,11 @@ export default function AppointmentsPage() {
       isOpen={isAddPatientOpen}
       onClose={() => setIsAddPatientOpen(false)}
       onCreated={() => setIsAddPatientOpen(false)}
+    />
+    <BookAppointmentModal
+      isOpen={isBookOpen}
+      onClose={() => setIsBookOpen(false)}
+      onBooked={onBooked}
     />
     </>
   );

@@ -194,6 +194,17 @@ export interface Appointment {
   consultationFee: number;
 }
 
+/** This appointment's live position among its doctor's still-active appointments today. */
+export interface QueueStatus {
+  appointmentId: number;
+  queueNumber?: number;
+  status: AppointmentStatus;
+  /** 1-based; 0 once the appointment is closed (completed/cancelled/no-show). */
+  position: number;
+  aheadCount: number;
+  totalActive: number;
+}
+
 export interface PrescriptionItem {
   medicationName: string;
   dosage: string;

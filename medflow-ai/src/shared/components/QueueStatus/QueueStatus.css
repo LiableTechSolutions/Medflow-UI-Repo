@@ -1,0 +1,119 @@
+.mf-queue-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-4);
+}
+
+.mf-queue-status__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mf-space-3);
+}
+
+.mf-queue-status__doctor {
+  margin: 0 0 2px;
+  font-size: var(--mf-fs-base);
+  font-weight: 600;
+  color: var(--mf-ink-900);
+}
+
+.mf-queue-status__when {
+  margin: 0;
+  font-size: var(--mf-fs-sm);
+  color: var(--mf-ink-400);
+}
+
+.mf-queue-status__panel {
+  text-align: center;
+  padding: var(--mf-space-6) var(--mf-space-4);
+  background: var(--mf-blue-50);
+  border-radius: var(--mf-radius-md);
+}
+
+.mf-queue-status__panel-label {
+  margin: 0 0 var(--mf-space-2);
+  font-size: var(--mf-fs-sm);
+  color: var(--mf-ink-500);
+}
+
+.mf-queue-status__panel-value {
+  margin: 0;
+  font-size: var(--mf-fs-3xl);
+  font-weight: 700;
+  color: var(--mf-blue-700);
+  line-height: 1;
+}
+
+.mf-queue-status__panel-sub {
+  margin: var(--mf-space-2) 0 0;
+  font-size: var(--mf-fs-sm);
+  color: var(--mf-ink-500);
+}
+
+.mf-queue-status__track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mf-space-1);
+  flex-wrap: wrap;
+}
+
+.mf-queue-status__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--mf-radius-pill);
+  font-size: var(--mf-fs-xs);
+  font-weight: 600;
+}
+
+.mf-queue-status__dot--done {
+  background: var(--mf-blue-100);
+  color: var(--mf-blue-700);
+}
+
+.mf-queue-status__dot--you {
+  width: 40px;
+  height: 40px;
+  background: var(--mf-blue-600);
+  color: #FFFFFF;
+}
+
+.mf-queue-status__dot--waiting {
+  background: var(--mf-surface);
+  border: 1px solid var(--mf-border-strong);
+}
+
+.mf-queue-status__overflow {
+  font-size: var(--mf-fs-xs);
+  color: var(--mf-ink-400);
+  padding: 0 var(--mf-space-1);
+}
+
+.mf-queue-status__reminder {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mf-space-2);
+  padding: var(--mf-space-3);
+  background: var(--mf-amber-100);
+  color: var(--mf-amber-600);
+  border-radius: var(--mf-radius-sm);
+  font-size: var(--mf-fs-sm);
+}
+
+.mf-queue-status__reminder svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.mf-queue-status__updated {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mf-space-1);
+  font-size: var(--mf-fs-xs);
+  color: var(--mf-ink-300);
+}

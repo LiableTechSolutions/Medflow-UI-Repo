@@ -4,6 +4,7 @@ export { HospitalisationRecordForm } from '../../shared/components/Hospitalisati
 export { DailyAnalysisTable } from '../../shared/components/DailyAnalysisTable/DailyAnalysisTable';
 export { PatientStatusSummaryGraph } from '../../shared/components/PatientStatusSummaryGraph/PatientStatusSummaryGraph';
 export { PatientDetailsEditPanel } from '../../shared/components/PatientDetailsEditPanel/PatientDetailsEditPanel';
+export { QueueStatus } from '../../shared/components/QueueStatus/QueueStatus';
 export type { DoctorOption, HospitalisationRecordValues } from '../../shared/components/HospitalisationRecordForm/HospitalisationRecordForm';
 export type { DailyAnalysisFormValues } from '../../shared/components/DailyAnalysisTable/DailyAnalysisTable';
 export type { PatientStatusPoint } from '../../shared/components/PatientStatusSummaryGraph/PatientStatusSummaryGraph';

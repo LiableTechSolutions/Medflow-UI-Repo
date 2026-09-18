@@ -14,6 +14,7 @@ export const ROUTES = {
   patients: '/patients',
   patientDetail: '/patients/:id',
   appointments: '/appointments',
+  appointmentQueue: '/appointments/:id/queue',
   prescriptions: '/prescriptions',
   laboratory: '/laboratory',
   pharmacy: '/pharmacy',

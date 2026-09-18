@@ -13,6 +13,7 @@ import DoctorsPage from '../../modules/doctors/pages/DoctorsPage';
 import PatientsPage from '../../modules/patients/pages/PatientsPage';
 import PatientSummaryPage from '../../modules/patients/pages/PatientSummaryPage';
 import AppointmentsPage from '../../modules/appointments/pages/AppointmentsPage';
+import AppointmentQueuePage from '../../modules/appointments/pages/AppointmentQueuePage';
 import PrescriptionsPage from '../../modules/prescriptions/pages/PrescriptionsPage';
 import ReportsPage from '../../modules/reports/pages/ReportsPage';
 import NotificationsPage from '../../modules/notifications/pages/NotificationsPage';
@@ -70,6 +71,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.patients, element: <PatientsPage /> },
           { path: ROUTES.patientDetail, element: <PatientSummaryPage /> },
           { path: ROUTES.appointments, element: <AppointmentsPage /> },
+          { path: ROUTES.appointmentQueue, element: <AppointmentQueuePage /> },
           { path: ROUTES.prescriptions, element: <PrescriptionsPage /> },
           { path: ROUTES.laboratory, element: <LaboratoryPage /> },
           { path: ROUTES.pharmacy, element: <PharmacyPage /> },

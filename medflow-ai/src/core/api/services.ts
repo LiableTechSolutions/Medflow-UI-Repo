@@ -18,6 +18,7 @@ import type {
   PatientClinicalSummaryDto,
   PatientSummary,
   Prescription,
+  QueueStatus,
   Role,
   Setting,
   UserAccount,
@@ -143,10 +144,12 @@ export const appointmentsApi = {
   list: (
     params: Paged & { status?: string; doctorId?: number; patientId?: number; date?: string } = {},
   ) => api.get<Page<Appointment>>(`/appointments${query({ ...params })}`),
+  get: (id: number) => api.get<Appointment>(`/appointments/${id}`),
   book: (payload: Record<string, unknown>) => api.post<Appointment>('/appointments', payload),
   /** action is one of confirm | check-in | start-consultation | complete | cancel | no-show */
   transition: (id: number, action: string) =>
     api.patch<Appointment>(`/appointments/${id}/${action}`),
+  queueStatus: (id: number) => api.get<QueueStatus>(`/appointments/${id}/queue-status`),
 };
 
 export const prescriptionsApi = {
