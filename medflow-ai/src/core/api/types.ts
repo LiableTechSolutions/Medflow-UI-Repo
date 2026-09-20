@@ -122,6 +122,44 @@ export interface Patient {
   guardianMobile?: string;
   status: AccountStatus;
   createdAt: string;
+  updatedAt?: string;
+}
+
+export type MappingRelation =
+  | 'SELF'
+  | 'PARENT'
+  | 'GUARDIAN'
+  | 'SPOUSE'
+  | 'CHILD'
+  | 'CARETAKER'
+  | 'OTHER';
+
+export interface PatientMedicalHistory {
+  id: number;
+  patientId: number;
+  conditionName: string;
+  notes?: string;
+  recordedByDoctorId?: number;
+  recordedAt: string;
+}
+
+export interface PatientAccount {
+  id: number;
+  userId: number;
+  userFullName?: string;
+  userEmail?: string;
+  relation: MappingRelation;
+  primaryContact: boolean;
+  createdAt: string;
+}
+
+export interface PatientReport {
+  id: number;
+  patientId: number;
+  reportType: string;
+  fileUrl: string;
+  uploadedByUserId?: number;
+  uploadedAt: string;
 }
 
 export interface Appointment {
