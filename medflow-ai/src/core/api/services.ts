@@ -13,6 +13,9 @@ import type {
   ModuleEntitlement,
   Notification,
   Patient,
+  PatientAccount,
+  PatientMedicalHistory,
+  PatientReport,
   Prescription,
   Role,
   Setting,
@@ -62,8 +65,12 @@ export const doctorsApi = {
 export const patientsApi = {
   list: (params: Paged & { query?: string; status?: string } = {}) =>
     api.get<Page<Patient>>(`/patients${query({ ...params })}`),
-  get: (id: number) => api.get<Patient>(`/patients/${id}`),
+  get: (id: number | string) => api.get<Patient>(`/patients/${id}`),
   create: (payload: Record<string, unknown>) => api.post<Patient>('/patients', payload),
+  medicalHistory: (id: number | string) =>
+    api.get<PatientMedicalHistory[]>(`/patients/${id}/medical-history`),
+  accounts: (id: number | string) => api.get<PatientAccount[]>(`/patients/${id}/accounts`),
+  reports: (id: number | string) => api.get<PatientReport[]>(`/patients/${id}/reports`),
 };
 
 export const appointmentsApi = {
