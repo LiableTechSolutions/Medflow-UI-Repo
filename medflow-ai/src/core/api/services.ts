@@ -3,6 +3,7 @@ import { api, query, type Page } from './client';
 import type {
   Appointment,
   AuthSession,
+  AvailableSlots,
   ChatMessage,
   DailyActivity,
   DailyAnalysisEntry,
@@ -150,6 +151,8 @@ export const appointmentsApi = {
   transition: (id: number, action: string) =>
     api.patch<Appointment>(`/appointments/${id}/${action}`),
   queueStatus: (id: number) => api.get<QueueStatus>(`/appointments/${id}/queue-status`),
+  availableSlots: (doctorId: number, date: string) =>
+    api.get<AvailableSlots>(`/appointments/available-slots${query({ doctorId, date })}`),
 };
 
 export const prescriptionsApi = {

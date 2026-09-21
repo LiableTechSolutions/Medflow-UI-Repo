@@ -5,8 +5,9 @@ import { Input } from '../../../shared/components/Input/Input';
 import { Select } from '../../../shared/components/Select/Select';
 import { SearchableSelect } from '../../../shared/components/SearchableSelect/SearchableSelect';
 import { Alert } from '../../../shared/components/Alert/Alert';
+import { Loading } from '../../../shared/components/Loading/Loading';
 import { useInlineValidation } from '../../../shared/hooks/useInlineValidation';
-import { required } from '../../../core/utils/validation';
+import { required, todayDateOnly } from '../../../core/utils/validation';
 import { appointmentsApi, doctorsApi, patientsApi } from '../../../core/api/services';
 import { ApiError } from '../../../core/api/client';
 import type { Appointment } from '../../../core/api/types';
@@ -19,29 +20,22 @@ const modeOptions = [
 interface FormValues {
   patientId: string;
   doctorId: string;
-  scheduledAt: string;
+  date: string;
   appointmentMode: string;
   reason: string;
   notes: string;
 }
 
-type FormField = keyof Pick<FormValues, 'patientId' | 'doctorId' | 'scheduledAt'>;
+type FormField = keyof Pick<FormValues, 'patientId' | 'doctorId' | 'date'>;
 
 const emptyValues: FormValues = {
   patientId: '',
   doctorId: '',
-  scheduledAt: '',
+  date: '',
   appointmentMode: 'WALK_IN',
   reason: '',
   notes: '',
 };
-
-/** `yyyy-MM-ddTHH:mm`, the format `<input type="datetime-local">` needs — floors to the minute. */
-function nowDateTimeLocal(): string {
-  const now = new Date();
-  now.setSeconds(0, 0);
-  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-}
 
 interface Props {
   isOpen: boolean;
@@ -49,23 +43,35 @@ interface Props {
   onBooked: (appointment: Appointment) => void;
 }
 
-/** Books a new appointment — patient, doctor, date/time, mode — then hands the result back. */
+/**
+ * Books a new appointment — patient, doctor, a real open slot for the chosen day, mode —
+ * then hands the result back. Slots come from the doctor's configured availability, so
+ * staff can only book times that are actually open.
+ */
 export function BookAppointmentModal({ isOpen, onClose, onBooked }: Props) {
   const [values, setValues] = useState<FormValues>(emptyValues);
   const [patientOptions, setPatientOptions] = useState<{ value: string; label: string }[]>([]);
   const [doctorOptions, setDoctorOptions] = useState<{ value: string; label: string }[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState('');
+  const [slots, setSlots] = useState<string[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
+  const [slotTouched, setSlotTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const validation = useInlineValidation<FormField>({
     patientId: required('Patient'),
     doctorId: required('Doctor'),
-    scheduledAt: required('Date and time'),
+    date: required('Date'),
   });
 
   useEffect(() => {
     if (!isOpen) return;
     setValues(emptyValues);
+    setSelectedSlot('');
+    setSlots([]);
+    setSlotTouched(false);
     setError(null);
     validation.reset();
     doctorsApi.list({ size: 100 }).then((page) =>
@@ -73,6 +79,21 @@ export function BookAppointmentModal({ isOpen, onClose, onBooked }: Props) {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  useEffect(() => {
+    setSelectedSlot('');
+    setSlotTouched(false);
+    if (!values.doctorId || !values.date) {
+      setSlots([]);
+      return;
+    }
+    setSlotsLoading(true);
+    setSlotsError(null);
+    appointmentsApi.availableSlots(Number(values.doctorId), values.date)
+      .then((result) => setSlots(result.slots))
+      .catch((cause) => setSlotsError(cause instanceof ApiError ? cause.message : 'Could not load available times'))
+      .finally(() => setSlotsLoading(false));
+  }, [values.doctorId, values.date]);
 
   async function loadPatientOptions() {
     if (patientOptions.length > 0) return patientOptions;
@@ -89,14 +110,15 @@ export function BookAppointmentModal({ isOpen, onClose, onBooked }: Props) {
   async function submit(event: FormEvent) {
     event.preventDefault();
     validation.markSubmitted();
-    if (validation.hasErrors(values)) return;
+    setSlotTouched(true);
+    if (validation.hasErrors(values) || !selectedSlot) return;
     setSubmitting(true);
     setError(null);
     try {
       const appointment = await appointmentsApi.book({
         patientId: Number(values.patientId),
         doctorId: Number(values.doctorId),
-        scheduledAt: new Date(values.scheduledAt).toISOString(),
+        scheduledAt: selectedSlot,
         appointmentMode: values.appointmentMode,
         reason: values.reason || undefined,
         notes: values.notes || undefined,
@@ -156,15 +178,49 @@ export function BookAppointmentModal({ isOpen, onClose, onBooked }: Props) {
           onChange={(event) => setField('doctorId', event.target.value)}
         />
         <Input
-          label="Date and time *"
-          type="datetime-local"
-          min={nowDateTimeLocal()}
-          value={values.scheduledAt}
-          error={validation.errorFor('scheduledAt', values.scheduledAt)}
-          onFocus={validation.handleFocus('scheduledAt')}
-          onBlur={validation.handleBlur('scheduledAt')}
-          onChange={(event) => setField('scheduledAt', event.target.value)}
+          label="Date *"
+          type="date"
+          min={todayDateOnly()}
+          value={values.date}
+          error={validation.errorFor('date', values.date)}
+          onFocus={validation.handleFocus('date')}
+          onBlur={validation.handleBlur('date')}
+          onChange={(event) => setField('date', event.target.value)}
         />
+
+        <div className="mf-field">
+          <label className="mf-field__label">Available time *</label>
+          {!values.doctorId || !values.date ? (
+            <p className="mf-field__message">Choose a doctor and date to see open times.</p>
+          ) : slotsLoading ? (
+            <Loading label="Loading available times…" />
+          ) : slotsError ? (
+            <p className="mf-field__message mf-field__message--error">{slotsError}</p>
+          ) : slots.length === 0 ? (
+            <p className="mf-field__message">No open slots for this day — try another date.</p>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--mf-space-2)' }}>
+              {slots.map((slot) => (
+                <Button
+                  key={slot}
+                  type="button"
+                  size="sm"
+                  variant={slot === selectedSlot ? 'primary' : 'outline'}
+                  onClick={() => {
+                    setSelectedSlot(slot);
+                    setSlotTouched(true);
+                  }}
+                >
+                  {new Date(slot).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                </Button>
+              ))}
+            </div>
+          )}
+          {slotTouched && !selectedSlot && slots.length > 0 && (
+            <p className="mf-field__message mf-field__message--error">Pick a time</p>
+          )}
+        </div>
+
         <Select
           label="Mode"
           value={values.appointmentMode}

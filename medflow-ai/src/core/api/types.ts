@@ -194,6 +194,13 @@ export interface Appointment {
   consultationFee: number;
 }
 
+/** A doctor's open consulting slots for one day, after subtracting existing bookings. */
+export interface AvailableSlots {
+  doctorId: number;
+  date: string;
+  slots: string[];
+}
+
 /** This appointment's live position among its doctor's still-active appointments today. */
 export interface QueueStatus {
   appointmentId: number;
