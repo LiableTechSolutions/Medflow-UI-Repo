@@ -1,0 +1,25 @@
+.mf-queue-overview__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--mf-space-4);
+}
+
+.mf-queue-overview__stat-label {
+  margin: 0 0 var(--mf-space-2);
+  font-size: var(--mf-fs-sm);
+  color: var(--mf-ink-500);
+}
+
+.mf-queue-overview__stat-value {
+  margin: 0;
+  font-size: var(--mf-fs-2xl);
+  font-weight: 700;
+  color: var(--mf-ink-900);
+  line-height: 1;
+}
+
+.mf-queue-overview__stat-sub {
+  margin: var(--mf-space-1) 0 0;
+  font-size: var(--mf-fs-xs);
+  color: var(--mf-ink-400);
+}
