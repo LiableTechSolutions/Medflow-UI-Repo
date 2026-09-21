@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarPlus, UserPlus } from 'lucide-react';
+import { CalendarPlus } from 'lucide-react';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Button } from '../../../shared/components/Button/Button';
 import { Select } from '../../../shared/components/Select/Select';
 import { useToast } from '../../../shared/components/Toast/Toast';
-import { AddPatientModal } from '../../patients/components/AddPatientModal';
 import { BookAppointmentModal } from '../components/BookAppointmentModal';
-import { appointmentsApi } from '../../../core/api/services';
+import { appointmentsApi, hospitalApi } from '../../../core/api/services';
+import { useApiResource } from '../../../shared/hooks/useApiResource';
 import { ApiError } from '../../../core/api/client';
 import { formatDateTime, humanize, statusTone } from '../../../core/utils/format';
 import type { Appointment, AppointmentStatus } from '../../../core/api/types';
@@ -37,8 +37,20 @@ export default function AppointmentsPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('');
   const [version, setVersion] = useState(0);
-  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [isBookOpen, setIsBookOpen] = useState(false);
+
+  // Used to build the hospital-branded live-queue link; a single lightweight fetch, not
+  // per navigation.
+  const { data: hospital } = useApiResource(() => hospitalApi.profile(), []);
+
+  function queueUrl(appointmentId: number) {
+    return hospital ? `/appointments/${hospital.hospitalCode}/queue/${appointmentId}` : null;
+  }
+
+  function goToQueue(appointmentId: number) {
+    const url = queueUrl(appointmentId);
+    if (url) navigate(url);
+  }
 
   function onBooked(appointment: Appointment) {
     setIsBookOpen(false);
@@ -48,7 +60,7 @@ export default function AppointmentsPage() {
       description: `${appointment.patientName} is #${appointment.queueNumber ?? '—'} in the queue. They've been notified.`,
       tone: 'success',
     });
-    navigate(`/appointments/${appointment.id}/queue`);
+    goToQueue(appointment.id);
   }
 
   async function advance(row: Appointment) {
@@ -77,16 +89,11 @@ export default function AppointmentsPage() {
       deps={[status, version]}
       load={({ page, size }) => appointmentsApi.list({ page, size, status: status || undefined })}
       emptyMessage="No appointments for this filter."
-      onRowClick={(row) => navigate(`/appointments/${row.id}/queue`)}
+      onRowClick={(row) => goToQueue(row.id)}
       actions={
-        <div style={{ display: 'flex', gap: 'var(--mf-space-3)' }}>
-          <Button variant="outline" leftIcon={<UserPlus size={16} />} onClick={() => setIsAddPatientOpen(true)}>
-            Add Patient
-          </Button>
-          <Button leftIcon={<CalendarPlus size={16} />} onClick={() => setIsBookOpen(true)}>
-            New Appointment
-          </Button>
-        </div>
+        <Button leftIcon={<CalendarPlus size={16} />} onClick={() => setIsBookOpen(true)}>
+          New Appointment
+        </Button>
       }
       toolbar={
         <div style={{ minWidth: 220 }}>
@@ -141,12 +148,6 @@ export default function AppointmentsPage() {
             ) : null,
         },
       ]}
-    />
-    {/* AddPatientModal shows its own "Patient registered" toast and closes itself on success. */}
-    <AddPatientModal
-      isOpen={isAddPatientOpen}
-      onClose={() => setIsAddPatientOpen(false)}
-      onCreated={() => setIsAddPatientOpen(false)}
     />
     <BookAppointmentModal
       isOpen={isBookOpen}
