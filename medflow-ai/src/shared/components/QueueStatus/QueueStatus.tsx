@@ -62,7 +62,10 @@ export function QueueStatus({
         <>
           <div className="mf-queue-status__panel">
             <p className="mf-queue-status__panel-label">Your position in queue</p>
-            <p className="mf-queue-status__panel-value">#{queue.position}</p>
+            <p className="mf-queue-status__panel-value">
+              {queue.position}
+              <span className="mf-queue-status__panel-value-total"> of {queue.totalActive}</span>
+            </p>
             <p className="mf-queue-status__panel-sub">
               {queue.aheadCount === 0
                 ? "You're next"
@@ -70,7 +73,7 @@ export function QueueStatus({
             </p>
           </div>
 
-          <div className="mf-queue-status__track" role="img" aria-label={`${queue.aheadCount} patients ahead, you are position ${queue.position}, ${behindCount} behind`}>
+          <div className="mf-queue-status__track" role="img" aria-label={`Position ${queue.position} of ${queue.totalActive} — ${queue.aheadCount} patients ahead, ${behindCount} behind`}>
             {aheadOverflow > 0 && <span className="mf-queue-status__overflow">+{aheadOverflow}</span>}
             {Array.from({ length: aheadDots }).map((_, i) => (
               <span key={`ahead-${i}`} className="mf-queue-status__dot mf-queue-status__dot--done">

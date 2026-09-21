@@ -45,6 +45,12 @@
   line-height: 1;
 }
 
+.mf-queue-status__panel-value-total {
+  font-size: var(--mf-fs-lg);
+  font-weight: 600;
+  color: var(--mf-ink-400);
+}
+
 .mf-queue-status__panel-sub {
   margin: var(--mf-space-2) 0 0;
   font-size: var(--mf-fs-sm);
