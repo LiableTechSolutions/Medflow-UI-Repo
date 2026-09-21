@@ -201,6 +201,26 @@ export interface AvailableSlots {
   slots: string[];
 }
 
+/** One row on the public/TV queue board. */
+export interface PublicQueueEntry {
+  queueNumber?: number;
+  patientName: string;
+  status: AppointmentStatus;
+  scheduledAt: string;
+}
+
+/** Read-only queue board for one doctor's day — no auth, meant for a TV or a patient link. */
+export interface PublicQueueBoard {
+  hospitalName: string;
+  doctorName: string;
+  specialty?: string;
+  date: string;
+  nowServingQueueNumber?: number;
+  nowServingPatientName?: string;
+  totalActive: number;
+  upcoming: PublicQueueEntry[];
+}
+
 /** This appointment's live position among its doctor's still-active appointments today. */
 export interface QueueStatus {
   appointmentId: number;

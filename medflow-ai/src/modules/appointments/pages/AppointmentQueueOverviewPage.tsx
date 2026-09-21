@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Tv } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/PageHeader/PageHeader';
 import { Card, CardBody } from '../../../shared/components/Card/Card';
 import { Badge } from '../../../shared/components/Badge/Badge';
@@ -81,9 +81,19 @@ export default function AppointmentQueueOverviewPage() {
         title="Queue board"
         description="Every appointment for the selected doctor and day, in queue order — refreshes automatically."
         actions={
-          <Button variant="outline" leftIcon={<ArrowLeft size={16} />} onClick={() => navigate('/appointments')}>
-            Back to appointments
-          </Button>
+          <div style={{ display: 'flex', gap: 'var(--mf-space-3)' }}>
+            <Button variant="outline" leftIcon={<ArrowLeft size={16} />} onClick={() => navigate('/appointments')}>
+              Back to appointments
+            </Button>
+            <Button
+              variant="outline"
+              leftIcon={<Tv size={16} />}
+              disabled={!doctorId}
+              onClick={() => window.open(`/public/${hospitalCode}/queue?doctorId=${doctorId}&date=${date}`, '_blank', 'noopener')}
+            >
+              Open TV display
+            </Button>
+          </div>
         }
       />
 

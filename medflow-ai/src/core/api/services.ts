@@ -19,6 +19,7 @@ import type {
   PatientClinicalSummaryDto,
   PatientSummary,
   Prescription,
+  PublicQueueBoard,
   QueueStatus,
   Role,
   Setting,
@@ -153,6 +154,12 @@ export const appointmentsApi = {
   queueStatus: (id: number) => api.get<QueueStatus>(`/appointments/${id}/queue-status`),
   availableSlots: (doctorId: number, date: string) =>
     api.get<AvailableSlots>(`/appointments/available-slots${query({ doctorId, date })}`),
+};
+
+/** No auth required — for a waiting-room TV or a link sent directly to a patient. */
+export const publicQueueApi = {
+  board: (hospitalCode: string, doctorId: number, date: string) =>
+    api.get<PublicQueueBoard>(`/public/queue${query({ hospitalCode, doctorId, date })}`),
 };
 
 export const prescriptionsApi = {
