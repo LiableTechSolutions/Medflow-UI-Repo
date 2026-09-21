@@ -12,9 +12,10 @@ import { Alert } from '../../../shared/components/Alert/Alert';
 import { Table, type TableColumn } from '../../../shared/components/Table/Table';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
 import { appointmentsApi, doctorsApi } from '../../../core/api/services';
-import { formatTime, humanize, statusTone } from '../../../core/utils/format';
+import { formatDate, formatTime, humanize, statusTone } from '../../../core/utils/format';
 import { todayDateOnly } from '../../../core/utils/validation';
 import type { Appointment, AppointmentStatus } from '../../../core/api/types';
+import '../../../shared/components/QueueStatus/QueueStatus.css';
 import './AppointmentQueueOverviewPage.css';
 
 const POLL_INTERVAL_MS = 20_000;
@@ -55,6 +56,8 @@ export default function AppointmentQueueOverviewPage() {
   const appointments = data?.content ?? [];
   const activeAppointments = appointments.filter((row) => ACTIVE_STATUSES.includes(row.status));
   const nowServing = appointments.find((row) => row.status === 'IN_CONSULTATION');
+  const upNext = activeAppointments.filter((row) => row.status !== 'IN_CONSULTATION').slice(0, 5);
+  const selectedDoctorLabel = doctorOptions.find((option) => option.value === doctorId)?.label ?? '';
 
   const columns: TableColumn<Appointment>[] = [
     { key: 'queue', header: '#', width: '60px', render: (row) => row.queueNumber ?? '—' },
@@ -99,23 +102,43 @@ export default function AppointmentQueueOverviewPage() {
         </div>
       </div>
 
-      <div className="mf-queue-overview__stats">
-        <Card padding="md">
-          <CardBody>
-            <p className="mf-queue-overview__stat-label">Total active appointments</p>
-            <p className="mf-queue-overview__stat-value">{activeAppointments.length}</p>
-          </CardBody>
-        </Card>
-        <Card padding="md">
-          <CardBody>
-            <p className="mf-queue-overview__stat-label">Now serving</p>
-            <p className="mf-queue-overview__stat-value">
-              {nowServing ? `#${nowServing.queueNumber ?? '—'}` : '—'}
+      <Card padding="lg">
+        <CardBody>
+          <div className="mf-queue-status__header">
+            <div>
+              <p className="mf-queue-status__doctor">{selectedDoctorLabel}</p>
+              <p className="mf-queue-status__when">{formatDate(date)}</p>
+            </div>
+            {nowServing && (
+              <Badge tone={statusTone('IN_CONSULTATION')} dot>
+                In consultation
+              </Badge>
+            )}
+          </div>
+
+          <div className="mf-queue-status__panel">
+            <p className="mf-queue-status__panel-label">Now serving</p>
+            <p className="mf-queue-status__panel-value">
+              {nowServing ? nowServing.queueNumber ?? '—' : '—'}
+              <span className="mf-queue-status__panel-value-total"> of {activeAppointments.length}</span>
             </p>
-            {nowServing && <p className="mf-queue-overview__stat-sub">{nowServing.patientName}</p>}
-          </CardBody>
-        </Card>
-      </div>
+            {nowServing && <p className="mf-queue-status__panel-sub">{nowServing.patientName}</p>}
+          </div>
+
+          {upNext.length > 0 && (
+            <div className="mf-queue-overview__next">
+              <p className="mf-queue-overview__next-label">Next up</p>
+              <div className="mf-queue-overview__next-list">
+                {upNext.map((row) => (
+                  <span key={row.id} className="mf-queue-overview__next-pill">
+                    #{row.queueNumber ?? '—'} {row.patientName}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardBody>
+      </Card>
 
       {error && (
         <Alert tone="danger" title="Could not load the queue">
