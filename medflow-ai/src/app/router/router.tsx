@@ -14,6 +14,7 @@ import PatientsPage from '../../modules/patients/pages/PatientsPage';
 import PatientSummaryPage from '../../modules/patients/pages/PatientSummaryPage';
 import AppointmentsPage from '../../modules/appointments/pages/AppointmentsPage';
 import AppointmentQueuePage from '../../modules/appointments/pages/AppointmentQueuePage';
+import AppointmentQueueOverviewPage from '../../modules/appointments/pages/AppointmentQueueOverviewPage';
 import PrescriptionsPage from '../../modules/prescriptions/pages/PrescriptionsPage';
 import ReportsPage from '../../modules/reports/pages/ReportsPage';
 import NotificationsPage from '../../modules/notifications/pages/NotificationsPage';
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.patients, element: <PatientsPage /> },
           { path: ROUTES.patientDetail, element: <PatientSummaryPage /> },
           { path: ROUTES.appointments, element: <AppointmentsPage /> },
+          { path: ROUTES.appointmentQueueOverview, element: <AppointmentQueueOverviewPage /> },
           { path: ROUTES.appointmentQueue, element: <AppointmentQueuePage /> },
           { path: ROUTES.prescriptions, element: <PrescriptionsPage /> },
           { path: ROUTES.laboratory, element: <LaboratoryPage /> },

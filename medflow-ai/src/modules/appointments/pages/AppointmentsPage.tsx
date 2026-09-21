@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarPlus } from 'lucide-react';
+import { CalendarPlus, ListOrdered } from 'lucide-react';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Button } from '../../../shared/components/Button/Button';
@@ -91,9 +91,19 @@ export default function AppointmentsPage() {
       emptyMessage="No appointments for this filter."
       onRowClick={(row) => goToQueue(row.id)}
       actions={
-        <Button leftIcon={<CalendarPlus size={16} />} onClick={() => setIsBookOpen(true)}>
-          New Appointment
-        </Button>
+        <div style={{ display: 'flex', gap: 'var(--mf-space-3)' }}>
+          <Button
+            variant="outline"
+            leftIcon={<ListOrdered size={16} />}
+            disabled={!hospital}
+            onClick={() => hospital && navigate(`/appointments/${hospital.hospitalCode}/queue`)}
+          >
+            Queue board
+          </Button>
+          <Button leftIcon={<CalendarPlus size={16} />} onClick={() => setIsBookOpen(true)}>
+            New Appointment
+          </Button>
+        </div>
       }
       toolbar={
         <div style={{ minWidth: 220 }}>
