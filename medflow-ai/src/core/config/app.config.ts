@@ -16,8 +16,8 @@ export const ROUTES = {
   appointments: '/appointments',
   appointmentQueueOverview: '/appointments/:hospitalCode/queue',
   appointmentQueue: '/appointments/:hospitalCode/queue/:id',
-  /** Public, unauthenticated — no login required. doctorId and date are query params. */
-  publicQueueBoard: '/public/:hospitalCode/queue',
+  /** Public, unauthenticated — no login required. Takes a single signed ?token= query param. */
+  publicQueueBoard: '/public/queue',
   prescriptions: '/prescriptions',
   laboratory: '/laboratory',
   pharmacy: '/pharmacy',

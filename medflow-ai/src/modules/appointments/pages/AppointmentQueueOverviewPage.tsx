@@ -11,7 +11,9 @@ import { Loading } from '../../../shared/components/Loading/Loading';
 import { Alert } from '../../../shared/components/Alert/Alert';
 import { Table, type TableColumn } from '../../../shared/components/Table/Table';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
+import { useToast } from '../../../shared/components/Toast/Toast';
 import { appointmentsApi, doctorsApi } from '../../../core/api/services';
+import { ApiError } from '../../../core/api/client';
 import { formatDate, formatTime, humanize, statusTone } from '../../../core/utils/format';
 import { todayDateOnly } from '../../../core/utils/validation';
 import type { Appointment, AppointmentStatus } from '../../../core/api/types';
@@ -30,10 +32,28 @@ const ACTIVE_STATUSES: AppointmentStatus[] = ['BOOKED', 'CONFIRMED', 'CHECKED_IN
 export default function AppointmentQueueOverviewPage() {
   const { hospitalCode } = useParams<{ hospitalCode: string }>();
   const navigate = useNavigate();
+  const { show } = useToast();
   const [doctorId, setDoctorId] = useState('');
   const [date, setDate] = useState(todayDateOnly());
   const [doctorOptions, setDoctorOptions] = useState<{ value: string; label: string }[]>([]);
   const [version, setVersion] = useState(0);
+  const [isOpeningTv, setIsOpeningTv] = useState(false);
+
+  async function openTvDisplay() {
+    setIsOpeningTv(true);
+    try {
+      const { token } = await appointmentsApi.queueLink(Number(doctorId), date);
+      window.open(`/public/queue?token=${encodeURIComponent(token)}`, '_blank', 'noopener');
+    } catch (cause) {
+      show({
+        title: 'Could not open the TV display',
+        description: cause instanceof ApiError ? cause.message : undefined,
+        tone: 'danger',
+      });
+    } finally {
+      setIsOpeningTv(false);
+    }
+  }
 
   useEffect(() => {
     doctorsApi.list({ size: 100 }).then((page) => {
@@ -89,7 +109,8 @@ export default function AppointmentQueueOverviewPage() {
               variant="outline"
               leftIcon={<Tv size={16} />}
               disabled={!doctorId}
-              onClick={() => window.open(`/public/${hospitalCode}/queue?doctorId=${doctorId}&date=${date}`, '_blank', 'noopener')}
+              isLoading={isOpeningTv}
+              onClick={openTvDisplay}
             >
               Open TV display
             </Button>

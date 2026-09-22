@@ -154,12 +154,18 @@ export const appointmentsApi = {
   queueStatus: (id: number) => api.get<QueueStatus>(`/appointments/${id}/queue-status`),
   availableSlots: (doctorId: number, date: string) =>
     api.get<AvailableSlots>(`/appointments/available-slots${query({ doctorId, date })}`),
+  /** Mints a signed token for the public queue board — see publicQueueApi.board. Staff-only. */
+  queueLink: (doctorId: number, date: string) =>
+    api.get<{ token: string }>(`/appointments/queue-link${query({ doctorId, date })}`),
 };
 
-/** No auth required — for a waiting-room TV or a link sent directly to a patient. */
+/**
+ * No auth required — for a waiting-room TV or a link sent directly to a patient. Takes
+ * only the signed token from `appointmentsApi.queueLink`, never raw hospital/doctor ids
+ * (those would be guessable/enumerable).
+ */
 export const publicQueueApi = {
-  board: (hospitalCode: string, doctorId: number, date: string) =>
-    api.get<PublicQueueBoard>(`/public/queue${query({ hospitalCode, doctorId, date })}`),
+  board: (token: string) => api.get<PublicQueueBoard>(`/public/queue${query({ token })}`),
 };
 
 export const prescriptionsApi = {

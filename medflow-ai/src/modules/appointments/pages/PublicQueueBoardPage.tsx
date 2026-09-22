@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
 import { Loading } from '../../../shared/components/Loading/Loading';
 import { Alert } from '../../../shared/components/Alert/Alert';
@@ -7,7 +7,6 @@ import { Badge } from '../../../shared/components/Badge/Badge';
 import { publicQueueApi } from '../../../core/api/services';
 import { ApiError } from '../../../core/api/client';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
-import { todayDateOnly } from '../../../core/utils/validation';
 import type { PublicQueueBoard } from '../../../core/api/types';
 import './PublicQueueBoardPage.css';
 
@@ -16,13 +15,13 @@ const POLL_INTERVAL_MS = 20_000;
 /**
  * No login, no app shell — this is the link a patient gets in their booking
  * notification, and what a waiting-room TV points at. Read-only: it can only ever GET
- * the public queue board endpoint, never mutate anything.
+ * the public queue board endpoint, never mutate anything. Takes a single signed
+ * `token` (minted by a staff member via appointmentsApi.queueLink) rather than raw
+ * hospital/doctor ids, which would be guessable.
  */
 export default function PublicQueueBoardPage() {
-  const { hospitalCode } = useParams<{ hospitalCode: string }>();
   const [searchParams] = useSearchParams();
-  const doctorId = searchParams.get('doctorId');
-  const date = searchParams.get('date') ?? todayDateOnly();
+  const token = searchParams.get('token');
 
   const [board, setBoard] = useState<PublicQueueBoard | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,14 +29,14 @@ export default function PublicQueueBoardPage() {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date>();
 
   useEffect(() => {
-    if (!hospitalCode || !doctorId) {
-      setError('This link is missing a doctor to show — check the URL has a doctorId.');
+    if (!token) {
+      setError('This link is missing its token — check the URL was copied in full.');
       setIsLoading(false);
       return;
     }
     let cancelled = false;
     function load() {
-      publicQueueApi.board(hospitalCode!, Number(doctorId), date)
+      publicQueueApi.board(token!)
         .then((result) => {
           if (cancelled) return;
           setBoard(result);
@@ -58,7 +57,7 @@ export default function PublicQueueBoardPage() {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [hospitalCode, doctorId, date]);
+  }, [token]);
 
   return (
     <div className="mf-public-queue">
