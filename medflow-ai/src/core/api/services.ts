@@ -4,6 +4,8 @@ import type {
   Appointment,
   AuthSession,
   AvailableSlots,
+  Bed,
+  BedSummary,
   ChatMessage,
   DailyActivity,
   DailyAnalysisEntry,
@@ -26,6 +28,7 @@ import type {
   Role,
   Setting,
   UserAccount,
+  Ward,
 } from './types';
 import type {
   PatientRegistrationProfile,
@@ -258,4 +261,21 @@ export const assistantApi = {
     api.post<ChatMessage>('/assistant/messages', { content, conversationId }),
   history: (params: Paged & { conversationId?: string } = {}) =>
     api.get<Page<ChatMessage>>(`/assistant/messages${query({ ...params })}`),
+};
+
+export const bedsApi = {
+  summary: () => api.get<BedSummary>('/beds/summary'),
+  wards: () => api.get<Ward[]>('/beds/wards'),
+  beds: (wardId: number) => api.get<Bed[]>(`/beds/wards/${wardId}/beds`),
+  createWard: (payload: { name: string; wardType?: string; bedCount: number }) =>
+    api.post<Ward>('/beds/wards', payload),
+  addBeds: (wardId: number, count: number) =>
+    api.post<Ward>(`/beds/wards/${wardId}/beds/add`, { count }),
+  reduceBeds: (wardId: number, count: number) =>
+    api.post<Ward>(`/beds/wards/${wardId}/beds/reduce`, { count }),
+  assign: (bedId: number, patientId: number) =>
+    api.patch<Bed>(`/beds/${bedId}/assign`, { patientId }),
+  release: (bedId: number) => api.patch<Bed>(`/beds/${bedId}/release`),
+  setMaintenance: (bedId: number, underMaintenance: boolean) =>
+    api.patch<Bed>(`/beds/${bedId}/maintenance`, { underMaintenance }),
 };

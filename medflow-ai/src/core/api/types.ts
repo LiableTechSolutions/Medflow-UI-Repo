@@ -333,3 +333,33 @@ export interface Role {
   description?: string;
   permissions: string[];
 }
+
+export type BedStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
+
+export interface Ward {
+  id: number;
+  name: string;
+  wardType?: string;
+  totalBeds: number;
+  availableBeds: number;
+  occupiedBeds: number;
+  maintenanceBeds: number;
+}
+
+export interface Bed {
+  id: number;
+  wardId: number;
+  bedNumber: string;
+  status: BedStatus;
+  patientId?: number;
+  patientName?: string;
+  occupiedAt?: string;
+}
+
+export interface BedSummary {
+  totalBeds: number;
+  availableBeds: number;
+  occupiedBeds: number;
+  maintenanceBeds: number;
+  occupancyPercent: number;
+}

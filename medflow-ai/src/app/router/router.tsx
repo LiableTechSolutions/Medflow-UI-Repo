@@ -26,6 +26,7 @@ import SettingsPage from '../../modules/settings/pages/SettingsPage';
 import NotFoundPage from '../../modules/landing/pages/NotFoundPage';
 import LaboratoryPage from '../../modules/laboratory/pages/LaboratoryPage';
 import PharmacyPage from '../../modules/pharmacy/pages/PharmacyPage';
+import BedManagementPage from '../../modules/beds/pages/BedManagementPage';
 
 /** Sends anonymous visitors to the sign-in page, remembering where they were going. */
 function RequireAuth() {
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.prescriptions, element: <PrescriptionsPage /> },
           { path: ROUTES.laboratory, element: <LaboratoryPage /> },
           { path: ROUTES.pharmacy, element: <PharmacyPage /> },
+          { path: ROUTES.beds, element: <BedManagementPage /> },
           { path: ROUTES.reports, element: <ReportsPage /> },
           { path: ROUTES.notifications, element: <NotificationsPage /> },
           { path: ROUTES.ai, element: <AiAssistantPage /> },

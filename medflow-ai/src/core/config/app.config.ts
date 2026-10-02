@@ -23,6 +23,7 @@ export const ROUTES = {
   prescriptions: '/prescriptions',
   laboratory: '/laboratory',
   pharmacy: '/pharmacy',
+  beds: '/beds',
   reports: '/reports',
   notifications: '/notifications',
   ai: '/ai',
