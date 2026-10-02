@@ -60,7 +60,6 @@ export default function AppointmentsPage() {
       description: `${appointment.patientName} is #${appointment.queueNumber ?? '—'} in the queue. They've been notified.`,
       tone: 'success',
     });
-    goToQueue(appointment.id);
   }
 
   async function advance(row: Appointment) {

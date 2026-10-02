@@ -250,6 +250,8 @@ export interface Prescription {
   medicines: PrescriptionItem[];
   digitallySigned: boolean;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  /** When the patient should come back; a daily job reminds them the day before. */
+  followUpDate?: string;
   createdAt: string;
 }
 

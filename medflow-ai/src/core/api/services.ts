@@ -176,12 +176,20 @@ export const publicQueueApi = {
 
 export const prescriptionsApi = {
   list: (
-    params: Paged & { patientId?: number; doctorId?: number; status?: string; issuedOn?: string } = {},
+    params: Paged & {
+      patientId?: number;
+      doctorId?: number;
+      status?: string;
+      issuedOn?: string;
+      query?: string;
+    } = {},
   ) => api.get<Page<Prescription>>(`/prescriptions${query({ ...params })}`),
   get: (id: number) => api.get<Prescription>(`/prescriptions/${id}`),
   create: (payload: Record<string, unknown>) => api.post<Prescription>('/prescriptions', payload),
   complete: (id: number) => api.patch<Prescription>(`/prescriptions/${id}/complete`),
   cancel: (id: number) => api.patch<Prescription>(`/prescriptions/${id}/cancel`),
+  /** Explicit action only — viewing or printing never sends anything on its own. */
+  send: (id: number) => api.post<void>(`/prescriptions/${id}/send`),
 };
 
 export const laboratoryApi = {

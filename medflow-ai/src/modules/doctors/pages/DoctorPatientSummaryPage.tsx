@@ -7,7 +7,11 @@ import { Button } from '../../../shared/components/Button/Button';
 import { Loading } from '../../../shared/components/Loading/Loading';
 import { Alert } from '../../../shared/components/Alert/Alert';
 import { Table, type TableColumn } from '../../../shared/components/Table/Table';
-import { PrescriptionPanel, type PrescriptionFormValues } from '../../../shared/components/PrescriptionPanel/PrescriptionPanel';
+import {
+  followUpDateFor,
+  PrescriptionPanel,
+  type PrescriptionFormValues,
+} from '../../../shared/components/PrescriptionPanel/PrescriptionPanel';
 import { useToast } from '../../../shared/components/Toast/Toast';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
 import { doctorsApi, hospitalApi, laboratoryApi, patientsApi, pharmacyApi, prescriptionsApi } from '../../../core/api/services';
@@ -48,6 +52,7 @@ export default function DoctorPatientSummaryPage() {
       appointmentId,
       diagnosis: values.diagnosis || undefined,
       digitallySigned: values.digitallySigned,
+      followUpDate: followUpDateFor(values.followUp) ?? undefined,
       medicines: values.medicines.map((row) => ({
         medicationName: row.medicationName,
         dosage: row.dosage,

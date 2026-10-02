@@ -8,6 +8,7 @@ import { Input } from '../Input/Input';
 import { Loading } from '../Loading/Loading';
 import { Modal } from '../Modal/Modal';
 import { PrescriptionDetailModal } from '../PrescriptionDetailModal/PrescriptionDetailModal';
+import { Select } from '../Select/Select';
 import { Table, type TableColumn } from '../Table/Table';
 import { Textarea } from '../Textarea/Textarea';
 import { useInlineValidation } from '../../hooks/useInlineValidation';
@@ -24,10 +25,33 @@ export interface PrescriptionMedicineRow {
   instructions: string;
 }
 
+export type FollowUpOption = 'none' | '15days' | '1month';
+
 export interface PrescriptionFormValues {
   diagnosis: string;
   digitallySigned: boolean;
   medicines: PrescriptionMedicineRow[];
+  /** When the patient should come back; a daily job reminds them the day before. */
+  followUp: FollowUpOption;
+}
+
+const FOLLOW_UP_OPTIONS: { value: FollowUpOption; label: string }[] = [
+  { value: 'none', label: 'No follow-up' },
+  { value: '15days', label: 'In 15 days' },
+  { value: '1month', label: 'In 1 month' },
+];
+
+/** `null` for "none" — the caller decides whether to omit the field entirely. */
+export function followUpDateFor(option: FollowUpOption): string | null {
+  const today = new Date();
+  if (option === '15days') {
+    today.setDate(today.getDate() + 15);
+  } else if (option === '1month') {
+    today.setMonth(today.getMonth() + 1);
+  } else {
+    return null;
+  }
+  return today.toISOString().slice(0, 10);
 }
 
 type FormField = 'diagnosis';
@@ -56,6 +80,7 @@ const emptyValues: PrescriptionFormValues = {
   diagnosis: '',
   digitallySigned: true,
   medicines: [{ ...emptyRow }],
+  followUp: 'none',
 };
 
 /**
@@ -290,6 +315,16 @@ export function PrescriptionPanel({
               </div>
             ))}
           </div>
+
+          <Select
+            label="Follow-up reminder"
+            hint="Sends the patient a reminder by email/WhatsApp/SMS the day before."
+            options={FOLLOW_UP_OPTIONS}
+            value={values.followUp}
+            onChange={(event) =>
+              setValues((current) => ({ ...current, followUp: event.target.value as FollowUpOption }))
+            }
+          />
 
           <Checkbox
             label="Digitally signed"

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DataPage } from '../../../shared/components/DataPage';
 import { Badge } from '../../../shared/components/Badge/Badge';
 import { Checkbox } from '../../../shared/components/Checkbox/Checkbox';
+import { Select } from '../../../shared/components/Select/Select';
 import { PrescriptionDetailModal } from '../../../shared/components/PrescriptionDetailModal/PrescriptionDetailModal';
 import { hospitalApi, prescriptionsApi } from '../../../core/api/services';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
@@ -9,8 +10,18 @@ import { formatDate, humanize, statusTone } from '../../../core/utils/format';
 import { todayDateOnly } from '../../../core/utils/validation';
 import type { Prescription } from '../../../core/api/types';
 
+const STATUSES = [
+  { value: '', label: 'All statuses' },
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+];
+
 export default function PrescriptionsPage() {
-  const [todayOnly, setTodayOnly] = useState(false);
+  // Defaults to today's prescriptions — staff mostly care about what was just issued;
+  // unchecking widens to the full history.
+  const [todayOnly, setTodayOnly] = useState(true);
+  const [status, setStatus] = useState('');
   const [selected, setSelected] = useState<Prescription | null>(null);
   const hospital = useApiResource(() => hospitalApi.profile(), []);
 
@@ -19,19 +30,35 @@ export default function PrescriptionsPage() {
       <DataPage<Prescription>
         title="Prescription Management"
         description="Digitally signed prescriptions and their medication lines. Click a row to view, print or download."
-        searchable={false}
+        searchPlaceholder="Search patient, doctor or diagnosis…"
         toolbar={
-          <Checkbox
-            label="Today only"
-            checked={todayOnly}
-            onChange={(event) => setTodayOnly(event.target.checked)}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--mf-space-4)' }}>
+            <Checkbox
+              label="Today only"
+              checked={todayOnly}
+              onChange={(event) => setTodayOnly(event.target.checked)}
+            />
+            <div style={{ minWidth: 180 }}>
+              <Select
+                options={STATUSES}
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                aria-label="Filter by status"
+              />
+            </div>
+          </div>
         }
-        deps={[todayOnly]}
+        deps={[todayOnly, status]}
         rowKey={(row) => row.id}
         onRowClick={setSelected}
-        load={({ page, size }) =>
-          prescriptionsApi.list({ page, size, issuedOn: todayOnly ? todayDateOnly() : undefined })
+        load={({ page, size, query }) =>
+          prescriptionsApi.list({
+            page,
+            size,
+            query: query || undefined,
+            status: status || undefined,
+            issuedOn: todayOnly ? todayDateOnly() : undefined,
+          })
         }
         emptyMessage={todayOnly ? 'No prescriptions issued today.' : 'No prescriptions issued yet.'}
         columns={[

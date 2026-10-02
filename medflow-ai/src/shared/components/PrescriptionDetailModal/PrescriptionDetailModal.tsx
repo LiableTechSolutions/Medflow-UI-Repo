@@ -1,8 +1,11 @@
-import { Printer, Download } from 'lucide-react';
+import { useState } from 'react';
+import { Printer, Download, Send } from 'lucide-react';
 import { Modal } from '../Modal/Modal';
 import { Badge } from '../Badge/Badge';
 import { Button } from '../Button/Button';
 import { useToast } from '../Toast/Toast';
+import { prescriptionsApi } from '../../../core/api/services';
+import { ApiError } from '../../../core/api/client';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
 import { downloadPrescription, printPrescription } from './prescriptionPrint';
 import type { Prescription } from '../../../core/api/types';
@@ -15,12 +18,15 @@ interface PrescriptionDetailModalProps {
 }
 
 /**
- * Read-only prescription detail with Print/Download. Print uses a hidden iframe and
- * Download a Blob + anchor click — neither opens a new window, so neither can be
- * blocked by a popup blocker the way `window.open` was (confirmed live: it was).
+ * Read-only prescription detail with Print/Download/Send. Print uses a hidden iframe and
+ * Download a client-generated PDF — neither opens a new window, so neither can be
+ * blocked by a popup blocker the way `window.open` was (confirmed live: it was). "Send
+ * to patient" is the only action that emails/WhatsApps/SMSes anything — viewing,
+ * printing and downloading never do that on their own.
  */
 export function PrescriptionDetailModal({ prescription, hospitalName, onClose }: PrescriptionDetailModalProps) {
   const { show } = useToast();
+  const [sending, setSending] = useState(false);
   if (!prescription) return null;
 
   function runOrReportError(action: () => void, failureTitle: string) {
@@ -29,6 +35,23 @@ export function PrescriptionDetailModal({ prescription, hospitalName, onClose }:
       action();
     } catch {
       show({ title: failureTitle, tone: 'danger' });
+    }
+  }
+
+  async function sendToPatient() {
+    if (!prescription) return;
+    setSending(true);
+    try {
+      await prescriptionsApi.send(prescription.id);
+      show({ title: 'Prescription sent to the patient', tone: 'success' });
+    } catch (cause) {
+      show({
+        title: "Couldn't send this prescription",
+        description: cause instanceof ApiError ? cause.message : undefined,
+        tone: 'danger',
+      });
+    } finally {
+      setSending(false);
     }
   }
 
@@ -57,12 +80,16 @@ export function PrescriptionDetailModal({ prescription, hospitalName, onClose }:
             Download PDF
           </Button>
           <Button
+            variant="outline"
             leftIcon={<Printer size={16} />}
             onClick={() =>
               runOrReportError(() => printPrescription(prescription, hospitalName), "Couldn't open print")
             }
           >
             Print
+          </Button>
+          <Button leftIcon={<Send size={16} />} isLoading={sending} onClick={sendToPatient}>
+            Send to patient
           </Button>
         </>
       }
@@ -77,6 +104,12 @@ export function PrescriptionDetailModal({ prescription, hospitalName, onClose }:
             <p className="mf-prescription-detail__label">Doctor</p>
             <p className="mf-prescription-detail__value">{prescription.doctorName}</p>
           </div>
+          {prescription.followUpDate && (
+            <div>
+              <p className="mf-prescription-detail__label">Follow-up</p>
+              <p className="mf-prescription-detail__value">{formatDate(prescription.followUpDate)}</p>
+            </div>
+          )}
         </div>
 
         <div className="mf-prescription-detail__section">
