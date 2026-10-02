@@ -1,0 +1,56 @@
+.mf-prescription-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-4);
+}
+
+.mf-prescription-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mf-space-3);
+}
+
+.mf-prescription-panel__title {
+  margin: 0;
+  font-size: var(--mf-fs-md);
+  font-weight: 700;
+  color: var(--mf-ink-900);
+}
+
+.mf-prescription-panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-4);
+}
+
+.mf-prescription-panel__medicines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-3);
+}
+
+.mf-prescription-panel__medicines-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--mf-fs-sm);
+  font-weight: 600;
+  color: var(--mf-ink-700);
+}
+
+.mf-prescription-panel__row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr auto;
+  gap: var(--mf-space-3);
+  align-items: end;
+  padding: var(--mf-space-3);
+  background: var(--mf-bg-subtle);
+  border-radius: var(--mf-radius-md);
+}
+
+@media (max-width: 900px) {
+  .mf-prescription-panel__row {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}

@@ -12,6 +12,7 @@ import DashboardPage from '../../modules/dashboard/pages/DashboardPage';
 import DoctorsPage from '../../modules/doctors/pages/DoctorsPage';
 import PatientsPage from '../../modules/patients/pages/PatientsPage';
 import PatientSummaryPage from '../../modules/patients/pages/PatientSummaryPage';
+import DoctorPatientSummaryPage from '../../modules/doctors/pages/DoctorPatientSummaryPage';
 import AppointmentsPage from '../../modules/appointments/pages/AppointmentsPage';
 import AppointmentQueuePage from '../../modules/appointments/pages/AppointmentQueuePage';
 import AppointmentQueueOverviewPage from '../../modules/appointments/pages/AppointmentQueueOverviewPage';
@@ -41,6 +42,13 @@ function RedirectIfAuthenticated({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isRestoring } = useAuth();
   if (isRestoring) return <Loading label="Loading…" fullHeight />;
   return isAuthenticated ? <Navigate to={ROUTES.dashboard} replace /> : <>{children}</>;
+}
+
+/** Doctor-only routes: a non-doctor landing here (direct URL, stale link) goes to the dashboard. */
+function RequireDoctor() {
+  const { user } = useAuth();
+  if (user?.roleCode !== 'DOCTOR') return <Navigate to={ROUTES.dashboard} replace />;
+  return <Outlet />;
 }
 
 export const router = createBrowserRouter([
@@ -73,6 +81,12 @@ export const router = createBrowserRouter([
           { path: ROUTES.doctors, element: <DoctorsPage /> },
           { path: ROUTES.patients, element: <PatientsPage /> },
           { path: ROUTES.patientDetail, element: <PatientSummaryPage /> },
+          {
+            element: <RequireDoctor />,
+            children: [
+              { path: ROUTES.doctorPatientDetail, element: <DoctorPatientSummaryPage /> },
+            ],
+          },
           { path: ROUTES.appointments, element: <AppointmentsPage /> },
           { path: ROUTES.appointmentQueueOverview, element: <AppointmentQueueOverviewPage /> },
           { path: ROUTES.appointmentQueue, element: <AppointmentQueuePage /> },

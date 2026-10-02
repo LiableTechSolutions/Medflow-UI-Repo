@@ -13,6 +13,8 @@ export const ROUTES = {
   doctors: '/doctors',
   patients: '/patients',
   patientDetail: '/patients/:id',
+  /** Doctor-only: the clinical summary + add-prescription workflow. */
+  doctorPatientDetail: '/doctor/patients/:patientId',
   appointments: '/appointments',
   appointmentQueueOverview: '/appointments/:hospitalCode/queue',
   appointmentQueue: '/appointments/:hospitalCode/queue/:id',

@@ -13,10 +13,12 @@ import type {
   HospitalisationRecord,
   LabOrder,
   Medication,
+  MedicalHistoryEntry,
   ModuleEntitlement,
   Notification,
   Patient,
   PatientClinicalSummaryDto,
+  PatientReport,
   PatientSummary,
   Prescription,
   PublicQueueBoard,
@@ -64,6 +66,8 @@ export const doctorsApi = {
     api.get<Page<Doctor>>(`/doctors${query({ ...params })}`),
   get: (id: number) => api.get<Doctor>(`/doctors/${id}`),
   create: (payload: Record<string, unknown>) => api.post<Doctor>('/doctors', payload),
+  /** The signed-in user's own doctor profile. 404s if this account isn't a doctor. */
+  me: () => api.get<Doctor>('/doctors/me'),
 };
 
 export const patientsApi = {
@@ -81,6 +85,8 @@ export const patientsApi = {
         dailyAnalyses: dto.dailyAnalyses,
       }),
     ),
+  medicalHistory: (id: number) => api.get<MedicalHistoryEntry[]>(`/patients/${id}/medical-history`),
+  reports: (id: number) => api.get<PatientReport[]>(`/patients/${id}/reports`),
 };
 
 // Route shapes below match `PatientController` on the BFF exactly: everything hangs off
@@ -171,12 +177,14 @@ export const publicQueueApi = {
 export const prescriptionsApi = {
   list: (params: Paged & { patientId?: number; doctorId?: number; status?: string } = {}) =>
     api.get<Page<Prescription>>(`/prescriptions${query({ ...params })}`),
+  get: (id: number) => api.get<Prescription>(`/prescriptions/${id}`),
+  create: (payload: Record<string, unknown>) => api.post<Prescription>('/prescriptions', payload),
   complete: (id: number) => api.patch<Prescription>(`/prescriptions/${id}/complete`),
   cancel: (id: number) => api.patch<Prescription>(`/prescriptions/${id}/cancel`),
 };
 
 export const laboratoryApi = {
-  list: (params: Paged & { status?: string; priority?: string } = {}) =>
+  list: (params: Paged & { status?: string; priority?: string; patientId?: number } = {}) =>
     api.get<Page<LabOrder>>(`/lab-orders${query({ ...params })}`),
   start: (id: number) => api.patch<LabOrder>(`/lab-orders/${id}/start`),
   complete: (id: number, resultSummary: string) =>

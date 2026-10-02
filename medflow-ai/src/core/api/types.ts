@@ -253,6 +253,26 @@ export interface Prescription {
   createdAt: string;
 }
 
+/** One recorded condition, matching `MedicalHistoryResponse` on the BFF. */
+export interface MedicalHistoryEntry {
+  id: number;
+  patientId: number;
+  conditionName: string;
+  notes?: string;
+  recordedByDoctorId: number;
+  recordedAt: string;
+}
+
+/** A stored document pointer (scan, lab report, discharge note), matching `PatientReportResponse`. */
+export interface PatientReport {
+  id: number;
+  patientId: number;
+  reportType: string;
+  fileUrl: string;
+  uploadedByUserId: number;
+  uploadedAt: string;
+}
+
 export interface LabOrder {
   id: number;
   patientId: number;
