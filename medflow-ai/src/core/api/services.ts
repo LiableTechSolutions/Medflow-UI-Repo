@@ -150,7 +150,16 @@ export const geoApi = {
 
 export const appointmentsApi = {
   list: (
-    params: Paged & { status?: string; doctorId?: number; patientId?: number; date?: string } = {},
+    params: Paged & {
+      status?: string;
+      doctorId?: number;
+      patientId?: number;
+      date?: string;
+      /** Inclusive yyyy-mm-dd range; independent of `date`. */
+      from?: string;
+      to?: string;
+      latestFirst?: boolean;
+    } = {},
   ) => api.get<Page<Appointment>>(`/appointments${query({ ...params })}`),
   get: (id: number) => api.get<Appointment>(`/appointments/${id}`),
   book: (payload: Record<string, unknown>) => api.post<Appointment>('/appointments', payload),
