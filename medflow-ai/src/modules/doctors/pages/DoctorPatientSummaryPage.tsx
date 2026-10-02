@@ -13,6 +13,7 @@ import {
   type PrescriptionFormValues,
 } from '../../../shared/components/PrescriptionPanel/PrescriptionPanel';
 import { useToast } from '../../../shared/components/Toast/Toast';
+import { PatientBedCard } from '../../../shared/components/PatientBedCard/PatientBedCard';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
 import { doctorsApi, hospitalApi, laboratoryApi, patientsApi, pharmacyApi, prescriptionsApi } from '../../../core/api/services';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
@@ -191,6 +192,8 @@ export default function DoctorPatientSummaryPage() {
           </dl>
         </CardBody>
       </Card>
+
+      <PatientBedCard patientId={patientId} canManage={false} />
 
       <Card padding="lg">
         <CardHeader>

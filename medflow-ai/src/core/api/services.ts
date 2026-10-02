@@ -266,6 +266,9 @@ export const assistantApi = {
 export const bedsApi = {
   summary: () => api.get<BedSummary>('/beds/summary'),
   wards: () => api.get<Ward[]>('/beds/wards'),
+  available: () => api.get<Bed[]>('/beds/available'),
+  /** The patient's current bed; resolves to undefined when they have none. */
+  ofPatient: (patientId: number) => api.get<Bed | undefined>(`/beds/patients/${patientId}`),
   beds: (wardId: number) => api.get<Bed[]>(`/beds/wards/${wardId}/beds`),
   createWard: (payload: { name: string; wardType?: string; bedCount: number }) =>
     api.post<Ward>('/beds/wards', payload),

@@ -8,6 +8,8 @@ import { Button } from '../../../shared/components/Button/Button';
 import { Loading } from '../../../shared/components/Loading/Loading';
 import { Alert } from '../../../shared/components/Alert/Alert';
 import { useToast } from '../../../shared/components/Toast/Toast';
+import { PatientBedCard } from '../../../shared/components/PatientBedCard/PatientBedCard';
+import { useAuth } from '../../../core/auth/AuthContext';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
 import { HospitalisationRecordForm, type HospitalisationRecordValues } from '../../../shared/components/HospitalisationRecordForm/HospitalisationRecordForm';
 import { DailyAnalysisTable, type DailyAnalysisFormValues } from '../../../shared/components/DailyAnalysisTable/DailyAnalysisTable';
@@ -66,6 +68,8 @@ export default function PatientSummaryPage() {
   const patientId = Number(id);
   const navigate = useNavigate();
   const { show } = useToast();
+  const { user } = useAuth();
+  const canManageBed = user?.roleCode === 'ADMIN' || user?.roleCode === 'NURSE';
 
   const { data: summary, error, isLoading, reload } = useApiResource(() => patientsApi.summary(patientId), [patientId]);
   const { data: doctorsPage } = useApiResource(() => doctorsApi.list({ size: 100 }), []);
@@ -229,6 +233,8 @@ export default function PatientSummaryPage() {
           </dl>
         </CardBody>
       </Card>
+
+      <PatientBedCard patientId={patientId} canManage={canManageBed} stayKey={patient.isHospitalised} />
 
       {patient.isHospitalised && hospitalisation && (
         <>
