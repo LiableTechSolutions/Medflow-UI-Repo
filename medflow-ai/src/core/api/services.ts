@@ -186,6 +186,9 @@ export const prescriptionsApi = {
   ) => api.get<Page<Prescription>>(`/prescriptions${query({ ...params })}`),
   get: (id: number) => api.get<Prescription>(`/prescriptions/${id}`),
   create: (payload: Record<string, unknown>) => api.post<Prescription>('/prescriptions', payload),
+  /** Issuing doctor only, and only on the day it was issued. */
+  update: (id: number, payload: Record<string, unknown>) =>
+    api.put<Prescription>(`/prescriptions/${id}`, payload),
   complete: (id: number) => api.patch<Prescription>(`/prescriptions/${id}/complete`),
   cancel: (id: number) => api.patch<Prescription>(`/prescriptions/${id}/cancel`),
   /** Explicit action only — viewing or printing never sends anything on its own. */

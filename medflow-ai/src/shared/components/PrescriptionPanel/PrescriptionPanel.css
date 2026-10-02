@@ -18,6 +18,11 @@
   color: var(--mf-ink-900);
 }
 
+.mf-prescription-panel__locked {
+  font-size: var(--mf-fs-xs);
+  color: var(--mf-ink-400);
+}
+
 .mf-prescription-panel__form {
   display: flex;
   flex-direction: column;

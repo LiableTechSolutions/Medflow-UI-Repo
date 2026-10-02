@@ -65,6 +65,24 @@ export default function DoctorPatientSummaryPage() {
     prescriptions.reload();
   }
 
+  async function editPrescription(id: number, values: PrescriptionFormValues) {
+    const existing = prescriptions.data?.content.find((item) => item.id === id);
+    await prescriptionsApi.update(id, {
+      diagnosis: values.diagnosis || undefined,
+      digitallySigned: values.digitallySigned,
+      followUpDate: followUpDateFor(values.followUp, existing?.followUpDate),
+      medicines: values.medicines.map((row) => ({
+        medicationName: row.medicationName,
+        dosage: row.dosage,
+        frequency: row.frequency,
+        durationDays: row.durationDays ? Number(row.durationDays) : undefined,
+        instructions: row.instructions || undefined,
+      })),
+    });
+    show({ title: 'Prescription updated', tone: 'success' });
+    prescriptions.reload();
+  }
+
   const historyColumns: TableColumn<MedicalHistoryEntry>[] = [
     { key: 'date', header: 'Recorded', render: (row) => formatDate(row.recordedAt) },
     { key: 'condition', header: 'Condition', render: (row) => row.conditionName },
@@ -240,6 +258,8 @@ export default function DoctorPatientSummaryPage() {
             isLoading={prescriptions.isLoading && !prescriptions.data}
             error={prescriptions.error ?? undefined}
             onAddPrescription={me.data ? addPrescription : undefined}
+            onEditPrescription={me.data ? editPrescription : undefined}
+            currentDoctorId={me.data?.id}
             loadMedicineOptions={loadMedicineOptions}
             hospitalName={hospital.data?.name ?? null}
           />

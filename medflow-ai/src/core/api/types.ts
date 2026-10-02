@@ -252,6 +252,8 @@ export interface Prescription {
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   /** When the patient should come back; a daily job reminds them the day before. */
   followUpDate?: string;
+  /** False once the day it was issued is over (or it's no longer active). */
+  editable: boolean;
   createdAt: string;
 }
 

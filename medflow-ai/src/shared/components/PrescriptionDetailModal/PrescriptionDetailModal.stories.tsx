@@ -14,6 +14,7 @@ const samplePrescription: Prescription = {
   ],
   digitallySigned: true,
   status: 'ACTIVE',
+  editable: true,
   createdAt: new Date().toISOString(),
 };
 

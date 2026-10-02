@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { Alert } from '../Alert/Alert';
 import { Badge } from '../Badge/Badge';
 import { Button } from '../Button/Button';
@@ -25,7 +25,8 @@ export interface PrescriptionMedicineRow {
   instructions: string;
 }
 
-export type FollowUpOption = 'none' | '15days' | '1month';
+/** `keep` only appears when editing a prescription that already has a reminder date. */
+export type FollowUpOption = 'none' | '15days' | '1month' | 'keep';
 
 export interface PrescriptionFormValues {
   diagnosis: string;
@@ -41,8 +42,12 @@ const FOLLOW_UP_OPTIONS: { value: FollowUpOption; label: string }[] = [
   { value: '1month', label: 'In 1 month' },
 ];
 
-/** `null` for "none" — the caller decides whether to omit the field entirely. */
-export function followUpDateFor(option: FollowUpOption): string | null {
+/**
+ * The reminder date to send, or `null` for "none". `existing` is the reminder already on
+ * the prescription being edited — what the `keep` option resolves to.
+ */
+export function followUpDateFor(option: FollowUpOption, existing?: string): string | null {
+  if (option === 'keep') return existing ?? null;
   const today = new Date();
   if (option === '15days') {
     today.setDate(today.getDate() + 15);
@@ -62,6 +67,13 @@ interface PrescriptionPanelProps {
   error?: string;
   /** Omit to hide the "Add prescription" affordance — e.g. a read-only history view. */
   onAddPrescription?: (values: PrescriptionFormValues) => Promise<void> | void;
+  /**
+   * Enables "Edit" on the current doctor's own prescriptions — but only while the server
+   * says they're still `editable` (the day they were issued); after that the row shows
+   * "Locked" instead.
+   */
+  onEditPrescription?: (id: number, values: PrescriptionFormValues) => Promise<void> | void;
+  currentDoctorId?: number;
   /** Hospital stock names shown as suggestions; the field still accepts free text. */
   loadMedicineOptions?: () => Promise<string[]>;
   emptyMessage?: string;
@@ -95,11 +107,14 @@ export function PrescriptionPanel({
   isLoading = false,
   error,
   onAddPrescription,
+  onEditPrescription,
+  currentDoctorId,
   loadMedicineOptions,
   emptyMessage = 'No prescriptions recorded yet.',
   hospitalName = null,
 }: PrescriptionPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Prescription | null>(null);
   const [selected, setSelected] = useState<Prescription | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -117,7 +132,27 @@ export function PrescriptionPanel({
   }, [isModalOpen, loadMedicineOptions, medicineNames.length]);
 
   function openModal() {
+    setEditing(null);
     setValues(emptyValues);
+    setSubmitError(null);
+    validation.reset();
+    setIsModalOpen(true);
+  }
+
+  function openEdit(prescription: Prescription) {
+    setEditing(prescription);
+    setValues({
+      diagnosis: prescription.diagnosis ?? '',
+      digitallySigned: prescription.digitallySigned,
+      medicines: prescription.medicines.map((item) => ({
+        medicationName: item.medicationName,
+        dosage: item.dosage,
+        frequency: item.frequency,
+        durationDays: item.durationDays ? String(item.durationDays) : '',
+        instructions: item.instructions ?? '',
+      })),
+      followUp: prescription.followUpDate ? 'keep' : 'none',
+    });
     setSubmitError(null);
     validation.reset();
     setIsModalOpen(true);
@@ -145,7 +180,7 @@ export function PrescriptionPanel({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!onAddPrescription) return;
+    if (!(editing ? onEditPrescription : onAddPrescription)) return;
     validation.markSubmitted();
     if (validation.hasErrors({ diagnosis: values.diagnosis })) return;
 
@@ -158,7 +193,11 @@ export function PrescriptionPanel({
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await onAddPrescription({ ...values, medicines });
+      if (editing) {
+        await onEditPrescription?.(editing.id, { ...values, medicines });
+      } else {
+        await onAddPrescription?.({ ...values, medicines });
+      }
       setIsModalOpen(false);
     } catch (cause) {
       setSubmitError(cause instanceof Error ? cause.message : 'Could not save this prescription');
@@ -189,6 +228,33 @@ export function PrescriptionPanel({
         <Badge tone={row.digitallySigned ? 'green' : 'neutral'}>{row.digitallySigned ? 'Signed' : 'Draft'}</Badge>
       ),
     },
+    ...(onEditPrescription
+      ? [
+          {
+            key: 'edit',
+            header: '',
+            align: 'right' as const,
+            render: (row: Prescription) =>
+              row.doctorId !== currentDoctorId ? null : row.editable ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  leftIcon={<Pencil size={14} />}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openEdit(row);
+                  }}
+                >
+                  Edit
+                </Button>
+              ) : (
+                <span className="mf-prescription-panel__locked" title="Prescriptions can only be edited on the day they were issued">
+                  Locked
+                </span>
+              ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -225,8 +291,12 @@ export function PrescriptionPanel({
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Add prescription"
-        description="Diagnosis notes and the medicines to prescribe."
+        title={editing ? 'Edit prescription' : 'Add prescription'}
+        description={
+          editing
+            ? 'Editing is only possible on the day a prescription was issued.'
+            : 'Diagnosis notes and the medicines to prescribe.'
+        }
         size="lg"
         footer={
           <>
@@ -234,7 +304,7 @@ export function PrescriptionPanel({
               Cancel
             </Button>
             <Button type="submit" form="prescription-form" isLoading={submitting}>
-              Save prescription
+              {editing ? 'Save changes' : 'Save prescription'}
             </Button>
           </>
         }
@@ -319,7 +389,11 @@ export function PrescriptionPanel({
           <Select
             label="Follow-up reminder"
             hint="Sends the patient a reminder by email/WhatsApp/SMS the day before."
-            options={FOLLOW_UP_OPTIONS}
+            options={
+              editing?.followUpDate
+                ? [{ value: 'keep', label: `Keep ${formatDate(editing.followUpDate)}` }, ...FOLLOW_UP_OPTIONS]
+                : FOLLOW_UP_OPTIONS
+            }
             value={values.followUp}
             onChange={(event) =>
               setValues((current) => ({ ...current, followUp: event.target.value as FollowUpOption }))
