@@ -19,7 +19,7 @@ import {
   type PatientDetailsEditPayload,
   type PatientDetailsEditValues,
 } from '../../../shared/components/PatientDetailsEditPanel/PatientDetailsEditPanel';
-import { dailyAnalysisApi, doctorsApi, hospitalisationsApi, patientsApi } from '../../../core/api/services';
+import { bedsApi, dailyAnalysisApi, doctorsApi, hospitalisationsApi, patientsApi } from '../../../core/api/services';
 import { ApiError } from '../../../core/api/client';
 import { formatDate, humanize, statusTone, toIsoInstant } from '../../../core/utils/format';
 import type { Patient } from '../../../core/api/types';
@@ -126,6 +126,17 @@ export default function PatientSummaryPage() {
         admittingDoctorId: Number(payload.hospitalisation.admittingDoctorId),
         admissionDate: toIsoInstant(payload.hospitalisation.admissionDate),
       });
+      if (payload.hospitalisation.bedId) {
+        try {
+          await bedsApi.assign(Number(payload.hospitalisation.bedId), patientId);
+        } catch (cause) {
+          show({
+            title: 'Admitted, but the bed could not be assigned',
+            description: cause instanceof ApiError ? cause.message : 'Assign one from the Bed card.',
+            tone: 'warning',
+          });
+        }
+      }
     } else if (!payload.isHospitalised && payload.wasHospitalised && summary.hospitalisation) {
       await hospitalisationsApi.discharge(patientId);
     }

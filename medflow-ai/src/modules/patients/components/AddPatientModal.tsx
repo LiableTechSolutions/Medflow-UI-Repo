@@ -14,7 +14,7 @@ import {
   type HospitalisationRecordValues,
 } from '../../../shared/components/HospitalisationRecordForm/HospitalisationRecordForm';
 import { ApiError } from '../../../core/api/client';
-import { doctorsApi, geoApi, patientsApi, settingsApi } from '../../../core/api/services';
+import { bedsApi, doctorsApi, geoApi, patientsApi, settingsApi } from '../../../core/api/services';
 import type { Patient } from '../../../core/api/types';
 import type { PatientRegistrationField } from '../../settings/types/patientRegistrationProfile';
 import { todayDateOnly, validators } from '../../../core/utils/validation';
@@ -208,6 +208,17 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
             }
           : undefined,
       });
+      if (isHospitalised && hospitalisationValues.bedId) {
+        try {
+          await bedsApi.assign(Number(hospitalisationValues.bedId), patient.id);
+        } catch (cause) {
+          show({
+            title: 'Registered, but the bed could not be assigned',
+            description: cause instanceof ApiError ? cause.message : 'Assign one from the patient profile.',
+            tone: 'warning',
+          });
+        }
+      }
       onCreated(patient);
       setValues({});
       setSubmitted(false);

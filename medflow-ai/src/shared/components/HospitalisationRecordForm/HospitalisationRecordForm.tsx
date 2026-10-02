@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { Badge } from '../Badge/Badge';
 import { Input } from '../Input/Input';
 import { Select } from '../Select/Select';
+import { useApiResource } from '../../hooks/useApiResource';
+import { bedsApi } from '../../../core/api/services';
 import { formatDate, humanize } from '../../../core/utils/format';
 import { notFutureDate, todayDateOnly } from '../../../core/utils/validation';
 import type { HospitalisationStatus } from '../../../core/api/types';
@@ -9,6 +12,8 @@ import './HospitalisationRecordForm.css';
 export interface HospitalisationRecordValues {
   ward: string;
   bed: string;
+  /** Set when the bed was picked from the hospital's real beds; the caller assigns it after admitting. */
+  bedId?: string;
   admittingDoctorId: string;
   /** yyyy-mm-dd, matching an `<input type="date">` value. */
   admissionDate: string;
@@ -47,6 +52,18 @@ export function HospitalisationRecordForm({
   status,
   admittingDoctorName,
 }: HospitalisationRecordFormProps) {
+  // Real wards and free beds when the hospital has set them up; otherwise the plain
+  // text boxes still work so admitting is never blocked on bed setup.
+  const wards = useApiResource(() => (readOnly ? Promise.resolve([]) : bedsApi.wards()), [readOnly]);
+  const freeBeds = useApiResource(() => (readOnly ? Promise.resolve([]) : bedsApi.available()), [readOnly]);
+  const wardChoices = useMemo(
+    () => (wards.data ?? []).filter((ward) => ward.availableBeds > 0),
+    [wards.data],
+  );
+  const usePickers = !wards.error && !freeBeds.error && wardChoices.length > 0;
+  const chosenWard = wardChoices.find((ward) => ward.name === values.ward);
+  const bedChoices = (freeBeds.data ?? []).filter((bed) => bed.wardId === chosenWard?.id);
+
   function setField<K extends keyof HospitalisationRecordValues>(key: K, value: HospitalisationRecordValues[K]) {
     onChange({ ...values, [key]: value });
   }
@@ -87,20 +104,47 @@ export function HospitalisationRecordForm({
   return (
     <div className="mf-hosp-form">
       <div className="mf-hosp-form__grid">
-        <Input
-          label="Ward *"
-          placeholder="e.g. General Ward B"
-          value={values.ward}
-          error={errors?.ward}
-          onChange={(event) => setField('ward', event.target.value)}
-        />
-        <Input
-          label="Bed *"
-          placeholder="e.g. B-14"
-          value={values.bed}
-          error={errors?.bed}
-          onChange={(event) => setField('bed', event.target.value)}
-        />
+        {usePickers ? (
+          <>
+            <Select
+              label="Ward *"
+              value={values.ward}
+              options={wardChoices.map((ward) => ({ value: ward.name, label: `${ward.name} (${ward.availableBeds} free)` }))}
+              placeholder="Select a ward"
+              error={errors?.ward}
+              onChange={(event) => onChange({ ...values, ward: event.target.value, bed: '', bedId: undefined })}
+            />
+            <Select
+              label="Bed *"
+              value={values.bedId ?? ''}
+              options={bedChoices.map((bed) => ({ value: String(bed.id), label: bed.bedNumber }))}
+              placeholder={chosenWard ? 'Select a bed' : 'Choose a ward first'}
+              disabled={!chosenWard}
+              error={errors?.bed}
+              onChange={(event) => {
+                const bed = bedChoices.find((candidate) => String(candidate.id) === event.target.value);
+                onChange({ ...values, bedId: bed ? String(bed.id) : undefined, bed: bed?.bedNumber ?? '' });
+              }}
+            />
+          </>
+        ) : (
+          <>
+            <Input
+              label="Ward *"
+              placeholder="e.g. General Ward B"
+              value={values.ward}
+              error={errors?.ward}
+              onChange={(event) => setField('ward', event.target.value)}
+            />
+            <Input
+              label="Bed *"
+              placeholder="e.g. B-14"
+              value={values.bed}
+              error={errors?.bed}
+              onChange={(event) => setField('bed', event.target.value)}
+            />
+          </>
+        )}
         <Select
           label="Admitting doctor *"
           value={values.admittingDoctorId}
