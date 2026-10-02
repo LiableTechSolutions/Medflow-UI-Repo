@@ -245,7 +245,12 @@ export default function PatientSummaryPage() {
         </CardBody>
       </Card>
 
-      <PatientBedCard patientId={patientId} canManage={canManageBed} stayKey={patient.isHospitalised} />
+      <PatientBedCard
+        patientId={patientId}
+        canManage={canManageBed}
+        stayKey={patient.isHospitalised}
+        isHospitalised={patient.isHospitalised}
+      />
 
       {patient.isHospitalised && hospitalisation && (
         <>

@@ -23,10 +23,15 @@ interface PatientBedCardProps {
    * moment after the discharge commits, so the card re-reads shortly after this changes.
    */
   stayKey?: unknown;
+  /**
+   * The card only earns its space when there's a bed to show, or when a hospitalised
+   * patient still needs one. Outpatients with no bed render nothing.
+   */
+  isHospitalised?: boolean;
 }
 
 /** Which bed the patient is in, with assign / release for ward staff. */
-export function PatientBedCard({ patientId, canManage, stayKey }: PatientBedCardProps) {
+export function PatientBedCard({ patientId, canManage, stayKey, isHospitalised = false }: PatientBedCardProps) {
   const { show } = useToast();
   const [version, setVersion] = useState(0);
   const [isPicking, setIsPicking] = useState(false);
@@ -56,6 +61,13 @@ export function PatientBedCard({ patientId, canManage, stayKey }: PatientBedCard
       setReleasing(false);
     }
   }
+
+  const needsBed = isHospitalised && canManage;
+  // Keep rendering while the bed is still loading (or after a failed load) so the card
+  // doesn't flash in and out; hide only once we know there's nothing to show or do.
+  const settled = !bed.isLoading || Boolean(bed.data) || Boolean(bed.error);
+  if (settled && !bed.data && !bed.error && !needsBed) return null;
+  if (!settled) return null;
 
   return (
     <Card padding="lg">
