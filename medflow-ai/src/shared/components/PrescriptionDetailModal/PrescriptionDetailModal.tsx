@@ -4,7 +4,7 @@ import { Badge } from '../Badge/Badge';
 import { Button } from '../Button/Button';
 import { useToast } from '../Toast/Toast';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
-import { openPrescriptionPrintWindow } from './prescriptionPrint';
+import { downloadPrescription, printPrescription } from './prescriptionPrint';
 import type { Prescription } from '../../../core/api/types';
 import './PrescriptionDetailModal.css';
 
@@ -15,23 +15,20 @@ interface PrescriptionDetailModalProps {
 }
 
 /**
- * Read-only prescription detail with Print/Download. "Download" also opens the
- * browser's print dialog — saving as PDF there is the download path (see
- * prescriptionPrint.ts for why this avoids a client-side PDF library).
+ * Read-only prescription detail with Print/Download. Print uses a hidden iframe and
+ * Download a Blob + anchor click — neither opens a new window, so neither can be
+ * blocked by a popup blocker the way `window.open` was (confirmed live: it was).
  */
 export function PrescriptionDetailModal({ prescription, hospitalName, onClose }: PrescriptionDetailModalProps) {
   const { show } = useToast();
   if (!prescription) return null;
 
-  function openPrint() {
+  function runOrReportError(action: () => void, failureTitle: string) {
     if (!prescription) return;
-    const opened = openPrescriptionPrintWindow(prescription, hospitalName);
-    if (!opened) {
-      show({
-        title: "Couldn't open the print window",
-        description: 'Your browser may have blocked the popup — allow popups for this site and try again.',
-        tone: 'danger',
-      });
+    try {
+      action();
+    } catch {
+      show({ title: failureTitle, tone: 'danger' });
     }
   }
 
@@ -47,10 +44,24 @@ export function PrescriptionDetailModal({ prescription, hospitalName, onClose }:
           <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
-          <Button variant="outline" leftIcon={<Download size={16} />} onClick={openPrint}>
-            Download (PDF)
+          <Button
+            variant="outline"
+            leftIcon={<Download size={16} />}
+            onClick={() =>
+              runOrReportError(
+                () => downloadPrescription(prescription, hospitalName),
+                "Couldn't download this prescription",
+              )
+            }
+          >
+            Download PDF
           </Button>
-          <Button leftIcon={<Printer size={16} />} onClick={openPrint}>
+          <Button
+            leftIcon={<Printer size={16} />}
+            onClick={() =>
+              runOrReportError(() => printPrescription(prescription, hospitalName), "Couldn't open print")
+            }
+          >
             Print
           </Button>
         </>
