@@ -12,10 +12,18 @@ export const ROUTES = {
   dashboard: '/dashboard',
   doctors: '/doctors',
   patients: '/patients',
+  patientDetail: '/patients/:id',
+  /** Doctor-only: the clinical summary + add-prescription workflow. */
+  doctorPatientDetail: '/doctor/patients/:patientId',
   appointments: '/appointments',
+  appointmentQueueOverview: '/appointments/:hospitalCode/queue',
+  appointmentQueue: '/appointments/:hospitalCode/queue/:id',
+  /** Public, unauthenticated — no login required. Takes a single signed ?token= query param. */
+  publicQueueBoard: '/public/queue',
   prescriptions: '/prescriptions',
   laboratory: '/laboratory',
   pharmacy: '/pharmacy',
+  beds: '/beds',
   reports: '/reports',
   notifications: '/notifications',
   ai: '/ai',

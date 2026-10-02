@@ -1,0 +1,58 @@
+.mf-prescription-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-4);
+}
+
+.mf-prescription-detail__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mf-space-4);
+}
+
+.mf-prescription-detail__label {
+  font-size: var(--mf-fs-xs);
+  color: var(--mf-ink-400);
+  margin: 0 0 var(--mf-space-1);
+}
+
+.mf-prescription-detail__value {
+  font-size: var(--mf-fs-sm);
+  font-weight: 600;
+  margin: 0;
+}
+
+.mf-prescription-detail__text {
+  font-size: var(--mf-fs-sm);
+  margin: 0;
+}
+
+.mf-prescription-detail__section {
+  border-top: 1px solid var(--mf-border);
+  padding-top: var(--mf-space-3);
+}
+
+.mf-prescription-detail__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--mf-fs-xs);
+}
+
+.mf-prescription-detail__table th,
+.mf-prescription-detail__table td {
+  text-align: left;
+  padding: var(--mf-space-2) var(--mf-space-1);
+  border-bottom: 1px solid var(--mf-border);
+}
+
+.mf-prescription-detail__table th {
+  color: var(--mf-ink-400);
+  font-weight: 600;
+}
+
+.mf-prescription-detail__footer {
+  display: flex;
+  gap: var(--mf-space-2);
+  border-top: 1px solid var(--mf-border);
+  padding-top: var(--mf-space-3);
+}

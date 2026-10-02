@@ -21,7 +21,9 @@ import { KpiCard } from '../components/KpiCard';
 import { ActivityChart } from '../components/ActivityChart';
 import { CalendarWidget } from '../components/CalendarWidget';
 import { ActivityTimeline } from '../components/ActivityTimeline';
+import { MyPatientsToday } from '../components/MyPatientsToday';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
+import { useAuth } from '../../../core/auth/AuthContext';
 import { analyticsApi, appointmentsApi, notificationsApi, patientsApi } from '../../../core/api/services';
 import { formatDate, formatMoney, formatTime, humanize, statusTone } from '../../../core/utils/format';
 import { ROUTES } from '../../../core/config/app.config';
@@ -56,6 +58,8 @@ const appointmentColumns: TableColumn<Appointment>[] = [
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isDoctor = user?.roleCode === 'DOCTOR';
 
   const summary = useApiResource(() => analyticsApi.dashboard(), []);
   const activity = useApiResource(() => analyticsApi.activity(7), []);
@@ -116,6 +120,8 @@ export default function DashboardPage() {
 
       <div className="mf-dashboard__grid">
         <div className="mf-dashboard__col mf-dashboard__col--main">
+          {isDoctor && <MyPatientsToday />}
+
           <Card padding="lg">
             <CardHeader>
               <div>

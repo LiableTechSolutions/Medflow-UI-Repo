@@ -1,0 +1,25 @@
+.mf-daily-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mf-space-4);
+}
+
+.mf-daily-analysis__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mf-space-3);
+}
+
+.mf-daily-analysis__title {
+  margin: 0;
+  font-size: var(--mf-fs-md);
+  font-weight: 700;
+  color: var(--mf-ink-900);
+}
+
+.mf-daily-analysis__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--mf-space-4);
+}

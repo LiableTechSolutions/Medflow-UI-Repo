@@ -121,7 +121,61 @@ export interface Patient {
   guardianRelationship?: string;
   guardianMobile?: string;
   status: AccountStatus;
+  /** True while the patient has an active (not yet discharged) hospitalisation. */
+  isHospitalised: boolean;
   createdAt: string;
+}
+
+export type HospitalisationStatus = 'ADMITTED' | 'DISCHARGED';
+
+/**
+ * An inpatient admission record, matching `HospitalisationRecordResponse` on the BFF.
+ * Discharge is a separate action, not captured at creation. The BFF does not resolve
+ * the admitting doctor's name — look it up from `doctorOptions` by `admittingDoctorId`.
+ */
+export interface HospitalisationRecord {
+  id: number;
+  patientId: number;
+  ward: string;
+  bed?: string;
+  admittingDoctorId: number;
+  admissionDate: string;
+  dischargeDate?: string;
+  status: HospitalisationStatus;
+  createdAt: string;
+}
+
+/**
+ * One day's vitals/observations logged against an active hospitalisation, matching
+ * `DailyAnalysisResponse` on the BFF — blood pressure is one combined "120/80" string,
+ * and the recorder is the doctor's id, not a free-text name.
+ */
+export interface DailyAnalysisEntry {
+  id: number;
+  hospitalisationRecordId: number;
+  patientId: number;
+  bloodPressure?: string;
+  pulse?: number;
+  temperature?: number;
+  spo2?: number;
+  notes?: string;
+  recordedByDoctorId: number;
+  recordedAt: string;
+}
+
+/** Combined payload for the patient summary screen. */
+export interface PatientSummary {
+  patient: Patient;
+  hospitalisation?: HospitalisationRecord;
+  dailyAnalyses: DailyAnalysisEntry[];
+}
+
+/** Raw shape of `GET /patients/:id/summary` (`PatientClinicalSummaryResponse` on the BFF). */
+export interface PatientClinicalSummaryDto {
+  patient: Patient;
+  isHospitalised: boolean;
+  currentHospitalisation: HospitalisationRecord | null;
+  dailyAnalyses: DailyAnalysisEntry[];
 }
 
 export interface Appointment {
@@ -138,6 +192,44 @@ export interface Appointment {
   queueNumber?: number;
   reason?: string;
   consultationFee: number;
+}
+
+/** A doctor's open consulting slots for one day, after subtracting existing bookings. */
+export interface AvailableSlots {
+  doctorId: number;
+  date: string;
+  slots: string[];
+}
+
+/** One row on the public/TV queue board. */
+export interface PublicQueueEntry {
+  queueNumber?: number;
+  patientName: string;
+  status: AppointmentStatus;
+  scheduledAt: string;
+}
+
+/** Read-only queue board for one doctor's day — no auth, meant for a TV or a patient link. */
+export interface PublicQueueBoard {
+  hospitalName: string;
+  doctorName: string;
+  specialty?: string;
+  date: string;
+  nowServingQueueNumber?: number;
+  nowServingPatientName?: string;
+  totalActive: number;
+  upcoming: PublicQueueEntry[];
+}
+
+/** This appointment's live position among its doctor's still-active appointments today. */
+export interface QueueStatus {
+  appointmentId: number;
+  queueNumber?: number;
+  status: AppointmentStatus;
+  /** 1-based; 0 once the appointment is closed (completed/cancelled/no-show). */
+  position: number;
+  aheadCount: number;
+  totalActive: number;
 }
 
 export interface PrescriptionItem {
@@ -158,7 +250,31 @@ export interface Prescription {
   medicines: PrescriptionItem[];
   digitallySigned: boolean;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  /** When the patient should come back; a daily job reminds them the day before. */
+  followUpDate?: string;
+  /** False once the day it was issued is over (or it's no longer active). */
+  editable: boolean;
   createdAt: string;
+}
+
+/** One recorded condition, matching `MedicalHistoryResponse` on the BFF. */
+export interface MedicalHistoryEntry {
+  id: number;
+  patientId: number;
+  conditionName: string;
+  notes?: string;
+  recordedByDoctorId: number;
+  recordedAt: string;
+}
+
+/** A stored document pointer (scan, lab report, discharge note), matching `PatientReportResponse`. */
+export interface PatientReport {
+  id: number;
+  patientId: number;
+  reportType: string;
+  fileUrl: string;
+  uploadedByUserId: number;
+  uploadedAt: string;
 }
 
 export interface LabOrder {
@@ -216,4 +332,34 @@ export interface Role {
   roleName: string;
   description?: string;
   permissions: string[];
+}
+
+export type BedStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
+
+export interface Ward {
+  id: number;
+  name: string;
+  wardType?: string;
+  totalBeds: number;
+  availableBeds: number;
+  occupiedBeds: number;
+  maintenanceBeds: number;
+}
+
+export interface Bed {
+  id: number;
+  wardId: number;
+  bedNumber: string;
+  status: BedStatus;
+  patientId?: number;
+  patientName?: string;
+  occupiedAt?: string;
+}
+
+export interface BedSummary {
+  totalBeds: number;
+  availableBeds: number;
+  occupiedBeds: number;
+  maintenanceBeds: number;
+  occupancyPercent: number;
 }

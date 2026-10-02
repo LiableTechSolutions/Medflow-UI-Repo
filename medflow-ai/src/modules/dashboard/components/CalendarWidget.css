@@ -1,3 +1,7 @@
+.mf-calendar {
+  max-width: 280px;
+}
+
 .mf-calendar__header {
   display: flex;
   align-items: center;

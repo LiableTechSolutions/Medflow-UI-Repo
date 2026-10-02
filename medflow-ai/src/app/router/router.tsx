@@ -11,7 +11,12 @@ import ForgotPasswordPage from '../../modules/auth/pages/ForgotPasswordPage';
 import DashboardPage from '../../modules/dashboard/pages/DashboardPage';
 import DoctorsPage from '../../modules/doctors/pages/DoctorsPage';
 import PatientsPage from '../../modules/patients/pages/PatientsPage';
+import PatientSummaryPage from '../../modules/patients/pages/PatientSummaryPage';
+import DoctorPatientSummaryPage from '../../modules/doctors/pages/DoctorPatientSummaryPage';
 import AppointmentsPage from '../../modules/appointments/pages/AppointmentsPage';
+import AppointmentQueuePage from '../../modules/appointments/pages/AppointmentQueuePage';
+import AppointmentQueueOverviewPage from '../../modules/appointments/pages/AppointmentQueueOverviewPage';
+import PublicQueueBoardPage from '../../modules/appointments/pages/PublicQueueBoardPage';
 import PrescriptionsPage from '../../modules/prescriptions/pages/PrescriptionsPage';
 import ReportsPage from '../../modules/reports/pages/ReportsPage';
 import NotificationsPage from '../../modules/notifications/pages/NotificationsPage';
@@ -21,6 +26,7 @@ import SettingsPage from '../../modules/settings/pages/SettingsPage';
 import NotFoundPage from '../../modules/landing/pages/NotFoundPage';
 import LaboratoryPage from '../../modules/laboratory/pages/LaboratoryPage';
 import PharmacyPage from '../../modules/pharmacy/pages/PharmacyPage';
+import BedManagementPage from '../../modules/beds/pages/BedManagementPage';
 
 /** Sends anonymous visitors to the sign-in page, remembering where they were going. */
 function RequireAuth() {
@@ -37,6 +43,13 @@ function RedirectIfAuthenticated({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isRestoring } = useAuth();
   if (isRestoring) return <Loading label="Loading…" fullHeight />;
   return isAuthenticated ? <Navigate to={ROUTES.dashboard} replace /> : <>{children}</>;
+}
+
+/** Doctor-only routes: a non-doctor landing here (direct URL, stale link) goes to the dashboard. */
+function RequireDoctor() {
+  const { user } = useAuth();
+  if (user?.roleCode !== 'DOCTOR') return <Navigate to={ROUTES.dashboard} replace />;
+  return <Outlet />;
 }
 
 export const router = createBrowserRouter([
@@ -58,6 +71,7 @@ export const router = createBrowserRouter([
     ),
   },
   { path: ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
+  { path: ROUTES.publicQueueBoard, element: <PublicQueueBoardPage /> },
   {
     element: <RequireAuth />,
     children: [
@@ -67,10 +81,20 @@ export const router = createBrowserRouter([
           { path: ROUTES.dashboard, element: <DashboardPage /> },
           { path: ROUTES.doctors, element: <DoctorsPage /> },
           { path: ROUTES.patients, element: <PatientsPage /> },
+          { path: ROUTES.patientDetail, element: <PatientSummaryPage /> },
+          {
+            element: <RequireDoctor />,
+            children: [
+              { path: ROUTES.doctorPatientDetail, element: <DoctorPatientSummaryPage /> },
+            ],
+          },
           { path: ROUTES.appointments, element: <AppointmentsPage /> },
+          { path: ROUTES.appointmentQueueOverview, element: <AppointmentQueueOverviewPage /> },
+          { path: ROUTES.appointmentQueue, element: <AppointmentQueuePage /> },
           { path: ROUTES.prescriptions, element: <PrescriptionsPage /> },
           { path: ROUTES.laboratory, element: <LaboratoryPage /> },
           { path: ROUTES.pharmacy, element: <PharmacyPage /> },
+          { path: ROUTES.beds, element: <BedManagementPage /> },
           { path: ROUTES.reports, element: <ReportsPage /> },
           { path: ROUTES.notifications, element: <NotificationsPage /> },
           { path: ROUTES.ai, element: <AiAssistantPage /> },

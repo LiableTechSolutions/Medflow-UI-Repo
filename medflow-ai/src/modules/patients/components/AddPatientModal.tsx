@@ -6,10 +6,26 @@ import { Select } from '../../../shared/components/Select/Select';
 import { Loading } from '../../../shared/components/Loading/Loading';
 import { Alert } from '../../../shared/components/Alert/Alert';
 import { useToast } from '../../../shared/components/Toast/Toast';
+import { SearchableSelect } from '../../../shared/components/SearchableSelect/SearchableSelect';
+import { HospitalisedCheckbox } from '../../../shared/components/HospitalisedCheckbox/HospitalisedCheckbox';
+import {
+  HospitalisationRecordForm,
+  type DoctorOption,
+  type HospitalisationRecordValues,
+} from '../../../shared/components/HospitalisationRecordForm/HospitalisationRecordForm';
 import { ApiError } from '../../../core/api/client';
-import { patientsApi, settingsApi } from '../../../core/api/services';
+import { bedsApi, doctorsApi, geoApi, patientsApi, settingsApi } from '../../../core/api/services';
 import type { Patient } from '../../../core/api/types';
 import type { PatientRegistrationField } from '../../settings/types/patientRegistrationProfile';
+import { todayDateOnly, validators } from '../../../core/utils/validation';
+import { toIsoInstant } from '../../../core/utils/format';
+
+const emptyHospitalisationValues = (): HospitalisationRecordValues => ({
+  ward: '',
+  bed: '',
+  admittingDoctorId: '',
+  admissionDate: new Date().toISOString().slice(0, 10),
+});
 
 interface Props {
   isOpen: boolean;
@@ -56,9 +72,6 @@ const keyToInput: Record<string, string> = {
   GUARDIAN_MOBILE: 'guardianMobile',
 };
 
-const indianMobilePattern = /^[6-9]\d{9}$/;
-const indianPinPattern = /^[1-9]\d{5}$/;
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const bloodGroups = new Set(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']);
 
 function isFieldRequired(field: PatientRegistrationField) {
@@ -74,6 +87,12 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isHospitalised, setIsHospitalised] = useState(false);
+  const [hospitalisationValues, setHospitalisationValues] = useState<HospitalisationRecordValues>(
+    emptyHospitalisationValues,
+  );
+  const [doctorOptions, setDoctorOptions] = useState<DoctorOption[]>([]);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -82,11 +101,22 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
     setSubmitted(false);
     setActiveField(null);
     setValues({});
+    setIsHospitalised(false);
+    setHospitalisationValues(emptyHospitalisationValues());
     settingsApi.patientRegistrationProfile()
       .then((profile) => setFields(profile.fields.filter((field) => field.currentState !== 'HIDDEN')))
       .catch((cause) => setError(cause instanceof ApiError ? cause.message : 'Could not load registration fields'))
       .finally(() => setLoading(false));
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isHospitalised || doctorOptions.length > 0) return;
+    setIsLoadingDoctors(true);
+    doctorsApi.list({ size: 100 })
+      .then((page) => setDoctorOptions(page.content.map((doctor) => ({ value: String(doctor.id), label: `${doctor.fullName} · ${doctor.specialty}` }))))
+      .catch(() => setDoctorOptions([]))
+      .finally(() => setIsLoadingDoctors(false));
+  }, [isOpen, isHospitalised, doctorOptions.length]);
 
   const groupedFields = useMemo(() => fields.reduce<Record<string, PatientRegistrationField[]>>((groups, field) => {
     (groups[field.fieldGroup] ??= []).push(field);
@@ -104,7 +134,8 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
     if (!value) return undefined;
     switch (field.fieldKey) {
       case 'FULL_NAME':
-        return /^[A-Za-z][A-Za-z .'-]{1,99}$/.test(value) ? undefined : 'Enter a valid name using letters only';
+      case 'EMERGENCY_CONTACT_NAME':
+        return validators.personName(value);
       case 'DATE_OF_BIRTH': {
         const date = new Date(`${value}T00:00:00`);
         const today = new Date();
@@ -112,21 +143,20 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
         if (today.getFullYear() - date.getFullYear() > 120) return 'Enter a realistic date of birth';
         return undefined;
       }
+      // No country-code selector for mobile fields — just the 10-digit local number,
+      // validated (and an optional pasted +91/91 stripped) by the shared validator.
       case 'MOBILE':
       case 'EMERGENCY_CONTACT_MOBILE':
       case 'GUARDIAN_MOBILE':
-        return indianMobilePattern.test(value.replace(/^(?:\+91|91)[ -]?/, '').replace(/[ -]/g, ''))
-          ? undefined : 'Use a valid Indian mobile number, for example 9876543210';
+        return validators.indianMobile(value);
       case 'EMAIL':
-        return emailPattern.test(value) ? undefined : 'Enter a valid email address';
+        return validators.email(value);
       case 'ADDRESS':
         return value.length >= 5 ? undefined : 'Enter a complete address';
       case 'BLOOD_GROUP':
         return bloodGroups.has(value.toUpperCase()) ? undefined : 'Choose a valid blood group, for example O+';
       case 'POSTAL_CODE':
-        return indianPinPattern.test(value) ? undefined : 'Enter a valid 6-digit Indian PIN code';
-      case 'EMERGENCY_CONTACT_NAME':
-        return /^[A-Za-z][A-Za-z .'-]{1,99}$/.test(value) ? undefined : 'Enter a valid contact name';
+        return validators.postalCode(value);
       default:
         return undefined;
     }
@@ -168,10 +198,32 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
         guardianName: values.guardianName || undefined,
         guardianRelationship: values.guardianRelationship || undefined,
         guardianMobile: values.guardianMobile || undefined,
+        isHospitalised,
+        hospitalisation: isHospitalised
+          ? {
+              ward: hospitalisationValues.ward,
+              bed: hospitalisationValues.bed,
+              admittingDoctorId: Number(hospitalisationValues.admittingDoctorId),
+              admissionDate: toIsoInstant(hospitalisationValues.admissionDate),
+            }
+          : undefined,
       });
+      if (isHospitalised && hospitalisationValues.bedId) {
+        try {
+          await bedsApi.assign(Number(hospitalisationValues.bedId), patient.id);
+        } catch (cause) {
+          show({
+            title: 'Registered, but the bed could not be assigned',
+            description: cause instanceof ApiError ? cause.message : 'Assign one from the patient profile.',
+            tone: 'warning',
+          });
+        }
+      }
       onCreated(patient);
       setValues({});
       setSubmitted(false);
+      setIsHospitalised(false);
+      setHospitalisationValues(emptyHospitalisationValues());
       show({ title: 'Patient registered', tone: 'success' });
       onClose();
     } catch (cause) {
@@ -200,7 +252,22 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
     if (options) {
       return <Select key={field.fieldKey} label={label} value={values[input] ?? ''} options={options} placeholder="Select an option" error={errorMessage} onFocus={onFocus} onBlur={onBlur} onChange={(event) => onChange(event.target.value)} />;
     }
-    return <Input key={field.fieldKey} label={label} hint={field.fieldKey.includes('MOBILE') ? 'India: 10 digits starting with 6-9, with optional +91' : field.fieldKey === 'POSTAL_CODE' ? '6-digit Indian PIN code' : undefined} type={field.fieldKey === 'DATE_OF_BIRTH' ? 'date' : field.fieldKey.includes('MOBILE') || field.fieldKey === 'MOBILE' ? 'tel' : 'text'} value={values[input] ?? ''} error={errorMessage} onFocus={onFocus} onBlur={onBlur} onChange={(event) => onChange(event.target.value)} />;
+    if (field.fieldKey === 'STATE') {
+      return (
+        <SearchableSelect
+          key={field.fieldKey}
+          label={label}
+          placeholder="Search for a state…"
+          value={values[input] ?? ''}
+          error={errorMessage}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          loadOptions={() => geoApi.states('India')}
+          onChange={onChange}
+        />
+      );
+    }
+    return <Input key={field.fieldKey} label={label} hint={field.fieldKey.includes('MOBILE') ? 'India: 10 digits starting with 6-9, with optional +91' : field.fieldKey === 'POSTAL_CODE' ? '6-digit Indian PIN code' : undefined} type={field.fieldKey === 'DATE_OF_BIRTH' ? 'date' : field.fieldKey.includes('MOBILE') || field.fieldKey === 'MOBILE' ? 'tel' : 'text'} max={field.fieldKey === 'DATE_OF_BIRTH' ? todayDateOnly() : undefined} value={values[input] ?? ''} error={errorMessage} onFocus={onFocus} onBlur={onBlur} onChange={(event) => onChange(event.target.value)} />;
   }
 
   return (
@@ -215,6 +282,20 @@ export function AddPatientModal({ isOpen, onClose, onCreated }: Props) {
               </div>
             </section>
           ))}
+          <section>
+            <h4 style={{ margin: '0 0 var(--mf-space-3)' }}>Hospitalisation</h4>
+            <div style={{ display: 'grid', gap: 'var(--mf-space-4)' }}>
+              <HospitalisedCheckbox checked={isHospitalised} onChange={setIsHospitalised} />
+              {isHospitalised && (
+                <HospitalisationRecordForm
+                  values={hospitalisationValues}
+                  onChange={setHospitalisationValues}
+                  doctorOptions={doctorOptions}
+                  isLoadingDoctors={isLoadingDoctors}
+                />
+              )}
+            </div>
+          </section>
         </form>
       )}
     </Modal>

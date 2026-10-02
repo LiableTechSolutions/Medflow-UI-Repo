@@ -1,0 +1,21 @@
+.mf-patient-bed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mf-space-4);
+}
+
+.mf-patient-bed__name {
+  display: flex;
+  align-items: center;
+  gap: var(--mf-space-2);
+  margin: 0;
+  font-weight: 600;
+  color: var(--mf-ink-900);
+}
+
+.mf-patient-bed__since {
+  margin: 0;
+  font-size: var(--mf-fs-sm);
+  color: var(--mf-ink-500);
+}
