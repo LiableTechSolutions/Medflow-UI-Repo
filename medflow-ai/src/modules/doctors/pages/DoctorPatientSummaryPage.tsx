@@ -10,7 +10,7 @@ import { Table, type TableColumn } from '../../../shared/components/Table/Table'
 import { PrescriptionPanel, type PrescriptionFormValues } from '../../../shared/components/PrescriptionPanel/PrescriptionPanel';
 import { useToast } from '../../../shared/components/Toast/Toast';
 import { useApiResource } from '../../../shared/hooks/useApiResource';
-import { doctorsApi, laboratoryApi, patientsApi, pharmacyApi, prescriptionsApi } from '../../../core/api/services';
+import { doctorsApi, hospitalApi, laboratoryApi, patientsApi, pharmacyApi, prescriptionsApi } from '../../../core/api/services';
 import { formatDate, humanize, statusTone } from '../../../core/utils/format';
 import { ROUTES } from '../../../core/config/app.config';
 import type { LabOrder, MedicalHistoryEntry, PatientReport } from '../../../core/api/types';
@@ -28,6 +28,7 @@ export default function DoctorPatientSummaryPage() {
   const appointmentId = (location.state as { appointmentId?: number } | null)?.appointmentId;
 
   const me = useApiResource(() => doctorsApi.me(), []);
+  const hospital = useApiResource(() => hospitalApi.profile(), []);
   const summary = useApiResource(() => patientsApi.summary(patientId), [patientId]);
   const history = useApiResource(() => patientsApi.medicalHistory(patientId), [patientId]);
   const reports = useApiResource(() => patientsApi.reports(patientId), [patientId]);
@@ -235,6 +236,7 @@ export default function DoctorPatientSummaryPage() {
             error={prescriptions.error ?? undefined}
             onAddPrescription={me.data ? addPrescription : undefined}
             loadMedicineOptions={loadMedicineOptions}
+            hospitalName={hospital.data?.name ?? null}
           />
         </CardBody>
       </Card>

@@ -7,6 +7,7 @@ import { Checkbox } from '../Checkbox/Checkbox';
 import { Input } from '../Input/Input';
 import { Loading } from '../Loading/Loading';
 import { Modal } from '../Modal/Modal';
+import { PrescriptionDetailModal } from '../PrescriptionDetailModal/PrescriptionDetailModal';
 import { Table, type TableColumn } from '../Table/Table';
 import { Textarea } from '../Textarea/Textarea';
 import { useInlineValidation } from '../../hooks/useInlineValidation';
@@ -40,6 +41,7 @@ interface PrescriptionPanelProps {
   /** Hospital stock names shown as suggestions; the field still accepts free text. */
   loadMedicineOptions?: () => Promise<string[]>;
   emptyMessage?: string;
+  hospitalName?: string | null;
 }
 
 const emptyRow: PrescriptionMedicineRow = {
@@ -70,8 +72,10 @@ export function PrescriptionPanel({
   onAddPrescription,
   loadMedicineOptions,
   emptyMessage = 'No prescriptions recorded yet.',
+  hospitalName = null,
 }: PrescriptionPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selected, setSelected] = useState<Prescription | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [values, setValues] = useState<PrescriptionFormValues>(emptyValues);
@@ -182,8 +186,16 @@ export function PrescriptionPanel({
       {isLoading ? (
         <Loading label="Loading prescriptions…" />
       ) : (
-        <Table columns={columns} data={prescriptions} rowKey={(row) => row.id} emptyMessage={emptyMessage} />
+        <Table
+          columns={columns}
+          data={prescriptions}
+          rowKey={(row) => row.id}
+          onRowClick={setSelected}
+          emptyMessage={emptyMessage}
+        />
       )}
+
+      <PrescriptionDetailModal prescription={selected} hospitalName={hospitalName} onClose={() => setSelected(null)} />
 
       <Modal
         isOpen={isModalOpen}

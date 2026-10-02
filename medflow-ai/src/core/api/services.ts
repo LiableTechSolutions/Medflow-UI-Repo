@@ -175,8 +175,9 @@ export const publicQueueApi = {
 };
 
 export const prescriptionsApi = {
-  list: (params: Paged & { patientId?: number; doctorId?: number; status?: string } = {}) =>
-    api.get<Page<Prescription>>(`/prescriptions${query({ ...params })}`),
+  list: (
+    params: Paged & { patientId?: number; doctorId?: number; status?: string; issuedOn?: string } = {},
+  ) => api.get<Page<Prescription>>(`/prescriptions${query({ ...params })}`),
   get: (id: number) => api.get<Prescription>(`/prescriptions/${id}`),
   create: (payload: Record<string, unknown>) => api.post<Prescription>('/prescriptions', payload),
   complete: (id: number) => api.patch<Prescription>(`/prescriptions/${id}/complete`),
